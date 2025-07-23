@@ -2,84 +2,77 @@
 
 ## Implementation
 
-The Anvil system will be implemented as two main components:
+The Anvil system has been implemented as a Phoenix LiveView application with Ash Framework for domain modeling.
 
-1. **Anvil Service** - The main web application for managing prompts
-2. **Anvil Client** - Elixir library for consuming prompts in applications
+## Current Implementation Status
 
-Both components will share common domain models defined using Ash Framework.
+### Completed Components
 
-## Plan
+1. **Core Domain Models** - Fully implemented using Ash Framework
+2. **Web UI** - Phoenix LiveView pages for all major functionality
+3. **Template Engine** - Integrated Solid for Liquid template rendering
+4. **Navigation & UX** - Command palette, breadcrumbs, and keyboard shortcuts
+5. **Parameter Management** - Dynamic parameter definition with validation
 
-Based on our design discussion and simplified decisions, here's the implementation plan:
+## Actual Implementation Details
 
-### Phase 1: Core Domain Setup
+### Phase 1: Core Domain Setup (Completed)
 
-1. **Create Ash domains and resources**:
+1. **Ash Domains and Resources**:
    - `Anvil.Projects` domain with Project resource
-   - `Anvil.Prompts` domain with PromptSet and Prompt resources
-   - `Anvil.Versions` domain for version tracking
-   - Basic relationships and policies
+   - `Anvil.Prompts` domain with PromptSet, Prompt, and Version resources
+   - `Anvil.Accounts` domain with User resource
+   - Comprehensive relationships and cascading delete policies
+   - Custom changes for atomic slug generation
 
-2. **Database setup**:
-   - Add Solid gem for Liquid templating to mix.exs
-   - Create migrations for all resources
-   - Add approval_token_hash field for review workflow
-   - Create seed data for development
+2. **Database Implementation**:
+   - PostgreSQL with proper foreign key constraints
+   - Custom `Anvil.Types.ParameterList` for handling jsonb[] arrays
+   - Migrations for all resources with indexes
+   - Solid gem integrated for Liquid templating
 
-### Phase 2: Basic Web UI
+### Phase 2: Web UI (Completed)
 
-1. **Phoenix LiveView pages**:
-   - Project listing and creation
-   - PromptSet editor with live preview
-   - Simple prompt template editor
-   - Version history view
+1. **Phoenix LiveView Implementation**:
+   - Full CRUD for Projects, PromptSets, and Prompts
+   - Dynamic parameter management with add/remove functionality
+   - Real-time template validation with visual feedback
+   - Breadcrumb navigation for all pages
+   - Command palette with keyboard shortcuts (Cmd+K)
+   - Converted all pages to LiveViews (Dashboard, Account, Settings, Help)
 
-2. **Embedded mode support**:
-   - Mountable `/anvil` routes (optional)
-   - Auth delegation using `Anvil.Auth` behaviour
-   - Edit mode configuration (:live, :review, :locked)
+2. **Key UI Features**:
+   - Parameter auto-extraction from templates
+   - Visual validation showing missing/unused/matched parameters
+   - Retro-themed UI with consistent styling
+   - Form validation with real-time feedback
 
-### Phase 3: Client Library Core
+### Phase 3: Template Engine (Completed)
 
-1. **Essential client functions**:
-   - `Anvil.get/2` for fetching prompts
-   - Address parser for `@repo/bundle@version/prompt` format
-   - ETS-based cache with PubSub invalidation
-   - Liquid template rendering with custom filters
+1. **Template Processing**:
+   - `Anvil.Template.Analyzer` for parsing and validation
+   - Variable extraction using regex patterns
+   - Parameter validation against template variables
+   - Integration with Solid for Liquid rendering
 
-2. **CLI tools**:
-   - `mix anvil.pull` - fetch prompts locally
-   - `mix anvil.approve` - approve changes with token
-   - `mix anvil.list` - show available prompts
+2. **Parameter Management**:
+   - Dynamic parameter types (string, number, boolean)
+   - Required/optional parameter flags
+   - Auto-population of missing parameters
+   - Visual feedback for validation status
 
-### Phase 4: Template Engine
+### Key Technical Decisions
 
-1. **Liquid integration**:
-   - Custom filters: `for_model`, `count_tokens`, `compose_with`
-   - Parameter validation
-   - Safe rendering in isolated processes
+1. **Authentication**: Using phx_gen_auth with LiveView session management
+2. **Database**: PostgreSQL with custom type handling for jsonb arrays
+3. **UI Framework**: Phoenix LiveView with retro-themed DaisyUI components
+4. **Template Engine**: Solid gem for Liquid template support
+5. **Navigation**: Command palette pattern with keyboard shortcuts
+6. **State Management**: LiveView assigns with proper socket handling
 
-### Simplified Decisions from Design Review
+## Actual Implementation Code
 
-- **Registry**: Skip for now, direct connections only
-- **Template Syntax**: Liquid + custom filters via Solid
-- **Caching**: ETS + PubSub invalidation
-- **Version Aliases**: Server-side with client override
-- **Review Workflow**: CLI-based with secret token
-- **Public/Private**: Single-tenant for Zaya only
-
-### Implementation Benefits
-
-- No registry service complexity
-- Single-tenant (Zaya only)  
-- CLI-based review approval
-- Direct client-to-service connection
-- Start with ETS caching only
-
-## Code Examples
-
-### Core Domain Models (Ash Resources)
+### Core Domain Models (As Built)
 
 ```elixir
 defmodule Anvil.Projects.Project do
@@ -103,370 +96,454 @@ defmodule Anvil.Projects.Project do
   end
 
   relationships do
-    belongs_to :owner, Anvil.Accounts.User
+    belongs_to :user, Anvil.Accounts.User do
+      allow_nil? false
+      attribute_writable? true
+    end
     has_many :prompt_sets, Anvil.Prompts.PromptSet
   end
 
-  identities do
-    identity :unique_slug_per_user, [:owner_id, :slug]
+  changes do
+    change Anvil.Projects.Changes.GenerateSlug
+  end
+
+  policies do
+    policy always() do
+      authorize_if expr(user_id == ^actor(:id))
+    end
   end
 end
 
 defmodule Anvil.Prompts.PromptSet do
   use Ash.Resource,
     domain: Anvil.Prompts,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
+
+  postgres do
+    table "prompt_sets"
+    repo Anvil.Repo
+
+    references do
+      reference :project, on_delete: :delete
+    end
+  end
 
   attributes do
     uuid_primary_key :id
     attribute :name, :string, allow_nil?: false
-    attribute :version, :string, allow_nil?: false
+    attribute :slug, :string, allow_nil?: false
+    attribute :description, :string
     attribute :metadata, :map, default: %{}
-    attribute :dependencies, {:array, :map}, default: []
-    attribute :published_at, :utc_datetime
-    attribute :edit_mode, :atom, 
-      constraints: [one_of: [:live, :review, :locked]],
-      default: :review
+    create_timestamp :created_at
+    update_timestamp :updated_at
   end
 
   relationships do
-    belongs_to :project, Anvil.Projects.Project
+    belongs_to :project, Anvil.Projects.Project do
+      allow_nil? false
+      attribute_writable? true
+    end
     has_many :prompts, Anvil.Prompts.Prompt
-    has_many :versions, Anvil.Prompts.Version
+  end
+
+  changes do
+    change Anvil.Prompts.Changes.GenerateSlug
+  end
+
+  policies do
+    policy always() do
+      authorize_if expr(project.user_id == ^actor(:id))
+    end
   end
 end
 
 defmodule Anvil.Prompts.Prompt do
   use Ash.Resource,
     domain: Anvil.Prompts,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
+
+  postgres do
+    table "prompts"
+    repo Anvil.Repo
+
+    references do
+      reference :prompt_set, on_delete: :delete
+    end
+  end
 
   attributes do
     uuid_primary_key :id
     attribute :name, :string, allow_nil?: false
     attribute :slug, :string, allow_nil?: false
     attribute :template, :text, allow_nil?: false
-    attribute :parameters, {:array, :map}, default: []
+    attribute :parameters, Anvil.Types.ParameterList, default: []
     attribute :metadata, :map, default: %{}
+    create_timestamp :created_at
+    update_timestamp :updated_at
   end
 
   relationships do
-    belongs_to :prompt_set, Anvil.Prompts.PromptSet
+    belongs_to :prompt_set, Anvil.Prompts.PromptSet do
+      allow_nil? false
+      attribute_writable? true
+    end
+  end
+
+  changes do
+    change Anvil.Prompts.Changes.GenerateSlug
+  end
+
+  policies do
+    policy always() do
+      authorize_if expr(prompt_set.project.user_id == ^actor(:id))
+    end
   end
 end
 ```
 
-### Client Library API
+### Custom Type for Parameter Handling
 
 ```elixir
-defmodule Anvil do
+defmodule Anvil.Types.ParameterList do
+  use Ash.Type
+
+  @impl true
+  def storage_type(_), do: {:array, :map}
+
+  @impl true
+  def cast_input(value, _) when is_list(value) do
+    casted = 
+      value
+      |> Enum.reject(&empty_parameter?/1)
+      |> Enum.map(&cast_parameter/1)
+    {:ok, casted}
+  end
+
+  def cast_input(_, _), do: {:ok, []}
+
+  @impl true
+  def cast_stored(value, _) when is_list(value), do: {:ok, value}
+  def cast_stored(_, _), do: {:ok, []}
+
+  @impl true
+  def dump_to_native(value, _) when is_list(value), do: {:ok, value}
+  def dump_to_native(_, _), do: {:ok, []}
+
+  defp empty_parameter?(%{"name" => ""}), do: true
+  defp empty_parameter?(%{"name" => nil}), do: true
+  defp empty_parameter?(_), do: false
+
+  defp cast_parameter(%{"name" => name, "type" => type, "required" => required}) do
+    %{
+      "name" => to_string(name),
+      "type" => to_string(type),
+      "required" => to_boolean(required)
+    }
+  end
+
+  defp to_boolean("true"), do: true
+  defp to_boolean("on"), do: true
+  defp to_boolean(true), do: true
+  defp to_boolean(_), do: false
+end
+```
+
+### Template Analysis Implementation
+
+```elixir
+defmodule Anvil.Template.Analyzer do
   @moduledoc """
-  Client library for consuming Anvil prompts in applications.
+  Analyzes Liquid templates for parameter validation and extraction.
   """
 
-  alias Anvil.{Cache, Registry, Resolver}
+  @variable_regex ~r/\{\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\}\}/
 
   @doc """
-  Get a prompt by its address, with parameter interpolation.
-  
-  ## Examples
-  
-      iex> Anvil.get("@local/onboarding@stable/welcome", 
-      ...>   user_name: "Alice", 
-      ...>   product: "Anvil")
-      {:ok, "Welcome to Anvil, Alice!"}
-      
-      iex> Anvil.get("@anvil/core@2.1.0/error_message",
-      ...>   error: "Not found")
-      {:ok, "Sorry, we couldn't find what you're looking for: Not found"}
+  Extracts all variable names from a Liquid template.
   """
-  def get(address, params \\ %{}) do
-    with {:ok, parsed} <- Resolver.parse_address(address),
-         {:ok, prompt} <- fetch_prompt(parsed),
-         {:ok, rendered} <- render_template(prompt.template, params) do
-      {:ok, rendered}
-    end
+  def extract_variables(template) when is_binary(template) do
+    @variable_regex
+    |> Regex.scan(template, capture: :all_but_first)
+    |> List.flatten()
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  def extract_variables(_), do: []
+
+  @doc """
+  Validates template parameters against defined parameters.
+  Returns a map with :missing, :unused, and :matched lists.
+  """
+  def validate_parameters(template, parameters) do
+    template_vars = extract_variables(template)
+    param_names = extract_parameter_names(parameters)
+
+    %{
+      missing: template_vars -- param_names,
+      unused: param_names -- template_vars,
+      matched: template_vars -- (template_vars -- param_names)
+    }
   end
 
   @doc """
-  Get a prompt, raising on error.
+  Creates parameter definitions for a list of variable names.
   """
-  def get!(address, params \\ %{}) do
-    case get(address, params) do
-      {:ok, prompt} -> prompt
-      {:error, reason} -> raise Anvil.Error, reason: reason
-    end
+  def create_parameter_definitions(variable_names) do
+    Enum.map(variable_names, fn name ->
+      %{
+        "name" => name,
+        "type" => "string",
+        "required" => false
+      }
+    end)
   end
 
-  defp fetch_prompt(parsed_address) do
-    case Cache.get(parsed_address) do
-      {:ok, prompt} -> 
-        {:ok, prompt}
-        
-      :miss ->
-        with {:ok, prompt} <- Registry.fetch(parsed_address) do
-          Cache.put(parsed_address, prompt)
-          {:ok, prompt}
+  defp extract_parameter_names(parameters) when is_list(parameters) do
+    parameters
+    |> Enum.map(&Map.get(&1, "name", ""))
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  defp extract_parameter_names(_), do: []
+end
+```
+
+### LiveView Implementation Example
+
+```elixir
+defmodule AnvilWeb.PromptLive.Edit do
+  use AnvilWeb, :live_view
+  use AnvilWeb.Live.CommandPaletteHandler
+
+  alias Anvil.Projects
+  alias Anvil.Prompts
+
+  on_mount {AnvilWeb.LiveUserAuth, :live_user_required}
+
+  @impl true
+  def handle_event("validate_template", _, socket) do
+    template = get_form_value(socket.assigns.form, :template) || ""
+    
+    validation_result = 
+      Anvil.Template.Analyzer.validate_parameters(template, socket.assigns.parameters)
+    
+    {:noreply, assign(socket, :validation_result, validation_result)}
+  end
+
+  def handle_event("auto_populate_parameters", _, socket) do
+    template = get_form_value(socket.assigns.form, :template) || ""
+    
+    validation_result = 
+      Anvil.Template.Analyzer.validate_parameters(template, socket.assigns.parameters)
+    
+    # Create new parameters for missing variables
+    new_params = Anvil.Template.Analyzer.create_parameter_definitions(validation_result.missing)
+    
+    # Combine with existing parameters
+    updated_parameters = socket.assigns.parameters ++ new_params
+    
+    {:noreply,
+     socket
+     |> assign(:parameters, updated_parameters)
+     |> assign(:validation_result, 
+         Anvil.Template.Analyzer.validate_parameters(template, updated_parameters))}
+  end
+
+  def handle_event("update_parameter", params, socket) do
+    index = String.to_integer(params["index"])
+    field = params["field"]
+    value = params["value"] || params["checked"] || ""
+    
+    parameters = 
+      socket.assigns.parameters
+      |> List.update_at(index, fn param ->
+        case field do
+          "name" -> Map.put(param, "name", value)
+          "type" -> Map.put(param, "type", value)
+          "required" -> Map.put(param, "required", value == "on" || value == "true")
+          _ -> param
         end
-    end
-  end
-
-  defp render_template(template, params) do
-    Anvil.Template.render(template, params)
+      end)
+    
+    {:noreply, assign(socket, :parameters, parameters)}
   end
 end
 ```
 
-### Template Rendering with Liquid
+### Command Palette Implementation
 
 ```elixir
-defmodule Anvil.Template do
-  @moduledoc """
-  Template rendering using Liquid syntax.
-  """
+defmodule AnvilWeb.Live.CommandPalette do
+  use AnvilWeb, :live_component
 
-  def render(template, params) do
-    context = build_context(params)
+  @impl true
+  def mount(socket) do
+    {:ok,
+     socket
+     |> assign(:open, false)
+     |> assign(:search, "")
+     |> assign(:results, [])
+     |> assign(:selected_index, 0)}
+  end
+
+  @impl true
+  def handle_event("open", _, socket) do
+    {:noreply,
+     socket
+     |> assign(:open, true)
+     |> assign(:search, "")
+     |> assign(:results, get_all_commands(socket))}
+  end
+
+  @impl true
+  def handle_event("close", _, socket) do
+    {:noreply, assign(socket, :open, false)}
+  end
+
+  @impl true
+  def handle_event("search", %{"value" => query}, socket) do
+    results = search_commands(query, socket)
     
-    case Solid.parse(template) do
-      {:ok, parsed} ->
-        rendered = Solid.render!(parsed, context, 
-          strict_variables: true,
-          filters: [Anvil.Template.Filters]
-        )
-        {:ok, rendered}
-        
-      {:error, error} ->
-        {:error, {:template_error, error}}
-    end
+    {:noreply,
+     socket
+     |> assign(:search, query)
+     |> assign(:results, results)
+     |> assign(:selected_index, 0)}
   end
 
-  defp build_context(params) do
-    params
-    |> Enum.map(fn {k, v} -> {to_string(k), v} end)
-    |> Map.new()
-  end
-end
-```
-
-### Mix Tasks for CLI
-
-```elixir
-defmodule Mix.Tasks.Anvil.Init do
-  use Mix.Task
-  
-  @shortdoc "Initialize Anvil in your project"
-  
-  def run([registry_url]) do
-    Mix.Task.run("app.start")
+  @impl true
+  def handle_event("execute", %{"command-id" => command_id}, socket) do
+    command = Enum.find(socket.assigns.results, &(&1.id == command_id))
     
-    with :ok <- validate_url(registry_url),
-         :ok <- create_config(registry_url),
-         :ok <- create_directories() do
-      Mix.shell().info("Anvil initialized successfully!")
-      Mix.shell().info("Registry: #{registry_url}")
-      Mix.shell().info("Run 'mix anvil.pull' to fetch prompts")
-    end
-  end
-end
-
-defmodule Mix.Tasks.Anvil.Pull do
-  use Mix.Task
-  
-  @shortdoc "Pull prompts from registry"
-  
-  def run(args) do
-    Mix.Task.run("app.start")
-    
-    opts = OptionParser.parse!(args, 
-      strict: [all: :boolean, set: :string]
-    )
-    
-    with {:ok, manifest} <- fetch_manifest(),
-         {:ok, updates} <- determine_updates(manifest, opts),
-         :ok <- download_updates(updates) do
-      Mix.shell().info("Successfully pulled #{length(updates)} prompt sets")
-    end
-  end
-end
-```
-
-### PubSub for Live Updates
-
-```elixir
-defmodule Anvil.PubSub.Handler do
-  use GenServer
-  require Logger
-
-  def start_link(opts) do
-    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
-  end
-
-  def init(opts) do
-    edit_mode = Keyword.get(opts, :edit_mode, :review)
-    
-    # Subscribe to prompt updates if in live mode
-    if edit_mode == :live do
-      Phoenix.PubSub.subscribe(Anvil.PubSub, "prompts:updates")
-    end
-    
-    {:ok, %{edit_mode: edit_mode}}
-  end
-
-  def handle_info({:prompt_updated, prompt_set_id, prompt}, state) do
-    if state.edit_mode == :live do
-      Logger.info("Live update received for prompt set #{prompt_set_id}")
-      Anvil.Cache.invalidate(prompt_set_id)
-      broadcast_to_subscribers(prompt_set_id, prompt)
-    end
-    
-    {:noreply, state}
-  end
-
-  defp broadcast_to_subscribers(prompt_set_id, prompt) do
-    Phoenix.PubSub.broadcast(
-      Anvil.PubSub,
-      "prompt_set:#{prompt_set_id}",
-      {:prompt_updated, prompt}
-    )
-  end
-end
-```
-
-## Technical Details
-
-### Version Resolution
-
-```elixir
-defmodule Anvil.Resolver do
-  @moduledoc """
-  Resolves prompt addresses to specific versions.
-  """
-  
-  def parse_address(address) do
-    case Regex.run(~r/^@([^\/]+)\/([^@]+)@([^\/]+)\/(.+)$/, address) do
-      [_, repo, bundle, version, prompt_name] ->
-        {:ok, %{
-          repository: repo,
-          bundle: bundle,
-          version: version,
-          prompt_name: prompt_name
-        }}
-        
-      _ ->
-        {:error, :invalid_address_format}
-    end
-  end
-  
-  def resolve_version(bundle, version_spec) do
-    cond do
-      version_spec == "stable" ->
-        get_stable_version(bundle)
-        
-      version_spec == "latest" ->
-        get_latest_version(bundle)
-        
-      String.starts_with?(version_spec, "^") ->
-        resolve_caret_version(bundle, version_spec)
-        
-      true ->
-        get_exact_version(bundle, version_spec)
-    end
-  end
-end
-```
-
-### Authentication Behaviour
-
-```elixir
-defmodule Anvil.Auth do
-  @callback authenticate(conn :: Plug.Conn.t()) :: 
-    {:ok, user} | {:error, reason :: atom()}
-    
-  @callback authorize(user :: map(), action :: atom(), resource :: map()) :: 
-    :ok | {:error, reason :: atom()}
-end
-
-# Example implementation in host app
-defmodule MyApp.AnvilAuth do
-  @behaviour Anvil.Auth
-  
-  def authenticate(conn) do
-    case MyApp.Auth.get_current_user(conn) do
-      nil -> {:error, :unauthenticated}
-      user -> {:ok, user}
-    end
-  end
-  
-  def authorize(user, :edit_prompt, prompt_set) do
-    if user.role in [:admin, :context_engineer] do
-      :ok
+    if command do
+      send(self(), {:execute_command, command})
+      {:noreply, assign(socket, :open, false)}
     else
-      {:error, :unauthorized}
+      {:noreply, socket}
     end
+  end
+
+  defp get_all_commands(socket) do
+    [
+      %{id: "projects", name: "Go to Projects", action: :navigate, path: "/projects"},
+      %{id: "dashboard", name: "Go to Dashboard", action: :navigate, path: "/"},
+      %{id: "account", name: "Account Settings", action: :navigate, path: "/account"},
+      %{id: "settings", name: "System Settings", action: :navigate, path: "/settings"},
+      %{id: "help", name: "Help & Documentation", action: :navigate, path: "/help"},
+      %{id: "logout", name: "Sign Out", action: :logout}
+    ]
   end
 end
 ```
 
-### Configuration
+### Atomic Slug Generation Change
 
 ```elixir
-# config/config.exs
-config :anvil,
-  registry_url: "https://anvil.rocks",
-  cache_ttl: :timer.minutes(5),
-  mode: :embedded,
-  enable_ui: true,
-  edit_mode: :review,
-  auth_module: MyApp.AnvilAuth
+defmodule Anvil.Prompts.Changes.GenerateSlug do
+  use Ash.Resource.Change
 
-# config/prod.exs  
-config :anvil,
-  edit_mode: :locked,
-  enable_ui: false
+  @impl true
+  def change(changeset, _, _) do
+    case Ash.Changeset.get_attribute(changeset, :name) do
+      nil ->
+        changeset
+
+      name ->
+        slug = name |> String.downcase() |> String.replace(~r/[^a-z0-9\s-]/, "") |> String.replace(~r/\s+/, "-")
+        Ash.Changeset.force_change_attribute(changeset, :slug, slug)
+    end
+  end
+
+  @impl true
+  def atomic(_changeset, _opts, _context) do
+    {:ok,
+     %{
+       slug:
+         Ash.Expr.expr(
+           fragment("lower(regexp_replace(regexp_replace(?, '[^a-zA-Z0-9\\s-]', '', 'g'), '\\s+', '-', 'g'))", ^ref(:name))
+         )
+     }}
+  end
+end
 ```
 
-## Challenges & Solutions
+## Key Implementation Features
 
-### Challenge 1: Dependency Resolution
+### 1. Dynamic Parameter Management
+- Add/remove parameters dynamically through UI
+- Type selection (string, number, boolean)
+- Required/optional flags
+- Real-time validation against template variables
 
-**Problem**: Resolving transitive dependencies while preventing circular dependencies and diamond dependency conflicts.
+### 2. Template Validation System
+- Extracts variables from Liquid templates using regex
+- Compares against defined parameters
+- Visual feedback for missing, unused, and matched parameters
+- Auto-population of missing parameters
 
-**Solution**: Implement a dependency resolver that:
+### 3. Command Palette Navigation
+- Global keyboard shortcut (Cmd+K)
+- Searchable command list
+- Navigation to any page in the application
+- Integrated with all LiveViews
 
-- Builds a dependency graph
-- Detects cycles using DFS
-- Resolves conflicts by failing fast with clear error messages
-- Allows manual version pinning as an escape hatch
+### 4. Atomic Database Operations
+- Custom Ash changes for atomic slug generation
+- PostgreSQL expression-based updates
+- Maintains database consistency
 
-### Challenge 2: Cache Invalidation
+## Current Implementation Status Summary
 
-**Problem**: Ensuring all nodes in a clustered environment have consistent prompt versions.
+### Completed Features
+1. **Core Domain Models** - All resources defined with Ash Framework
+2. **Database Layer** - PostgreSQL with proper migrations and constraints
+3. **Web UI** - Full LiveView implementation for all CRUD operations
+4. **Template Engine** - Liquid template support via Solid gem
+5. **Parameter Management** - Dynamic parameter definition with validation
+6. **Navigation** - Breadcrumbs and command palette with keyboard shortcuts
+7. **Authentication** - phx_gen_auth integration with protected routes
+8. **Custom Types** - PostgreSQL array handling for complex data structures
 
-**Solution**:
+### Pending Features
+1. **Version Management** - Track and manage prompt versions
+2. **Bundle Export/Import** - Package and distribute prompt sets
+3. **Client Library** - SDK for consuming prompts in applications
+4. **Registry Service** - Central repository for prompt distribution
+5. **Live Updates** - PubSub-based real-time prompt updates
+6. **Search Functionality** - Full-text search across projects and prompts
 
-- Use Phoenix.PubSub for cluster-wide notifications
-- Implement generation-based caching with atomic updates
-- Provide manual cache clearing commands for emergencies
+## Implementation Challenges Encountered
 
-### Challenge 3: Template Security
+### 1. PostgreSQL Array Type Handling
+**Problem**: Form data comes as `text[]` but PostgreSQL expects `jsonb[]` for parameter storage.
 
-**Problem**: User-provided templates could contain malicious code.
+**Solution**: Created custom Ash type (`Anvil.Types.ParameterList`) to handle conversion between form representation and database storage.
 
-**Solution**:
+### 2. Atomic Operations Requirement
+**Problem**: Ash changes must be atomic for database operations, but some computations seemed too complex.
 
-- Use Solid (Liquid) templating with strict mode
-- Whitelist allowed filters and tags
-- Sanitise all parameter inputs
-- Run templates in isolated processes with timeouts
+**Solution**: Used PostgreSQL fragment expressions within Ash.Expr to maintain atomicity while performing string transformations.
 
-### Challenge 4: Version Compatibility
+### 3. Checkbox Value Handling
+**Problem**: HTML checkboxes send "on" when checked, but code expected "true".
 
-**Problem**: Ensuring prompt compatibility across different LLM models and versions.
+**Solution**: Updated parameter parsing to handle both "on" and "true" values for boolean fields.
 
-**Solution**:
+### 4. Command Palette Integration
+**Problem**: Adding command palette to all LiveViews caused duplicate component ID errors.
 
-- Include model metadata in version string (e.g., `-gpt4`)
-- Add compatibility matrix to prompt set metadata
-- Warn when using prompts with untested models
-- Allow override with explicit acknowledgment
+**Solution**: Consolidated live sessions and created a shared CommandPaletteHandler behaviour.
+
+## Next Steps
+
+The foundation is solid with core functionality working. The next major features to implement are:
+
+1. **Version Management** - Critical for tracking prompt changes
+2. **Bundle Export/Import** - Enable prompt distribution
+3. **Client Library** - Allow applications to consume prompts
+4. **Search Functionality** - Improve navigation at scale

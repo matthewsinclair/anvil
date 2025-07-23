@@ -43,6 +43,12 @@ defmodule AnvilWeb.Components.Common.UserMenuComponent do
                 <span>Dashboard</span>
               </.link>
             </li>
+            <li>
+              <.link navigate={~p"/projects"} class="flex items-center gap-2">
+                <span>▪</span>
+                <span>Projects</span>
+              </.link>
+            </li>
           </ul>
 
           <div class="py-1 px-4 pointer-events-none">

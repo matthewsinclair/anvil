@@ -3,29 +3,29 @@
 ## Phase 1: Core Infrastructure (Foundation)
 
 ### Domain Models & Database
-- [ ] Create Ash domains for Projects, Prompts, and Accounts
-- [ ] Define Project resource with relationships
-- [ ] Define PromptSet resource with versioning attributes
-- [ ] Define Prompt resource with template and parameters
+- [x] Create Ash domains for Projects, Prompts, and Accounts
+- [x] Define Project resource with relationships
+- [x] Define PromptSet resource with versioning attributes
+- [x] Define Prompt resource with template and parameters
 - [ ] Create Version resource for tracking changes
-- [ ] Set up database migrations
+- [x] Set up database migrations
 - [ ] Add seed data for development
 
 ### Authentication & Authorisation
 - [ ] Define Anvil.Auth behaviour
-- [ ] Implement Ash policies for resources
+- [x] Implement Ash policies for resources (basic auth checks)
 - [ ] Create roles (admin, context_engineer, viewer)
 - [ ] Add audit logging for all operations
 
 ## Phase 2: Web Application (Management UI)
 
 ### Phoenix Application Setup
-- [ ] Create Phoenix LiveView controllers for prompt management
-- [ ] Build project listing and creation UI
-- [ ] Create prompt set editor with preview
+- [x] Create Phoenix LiveView controllers for prompt management
+- [x] Build project listing and creation UI
+- [x] Create prompt set editor with preview
 - [ ] Implement version comparison view
-- [ ] Add parameter definition interface
-- [ ] Create template validation UI
+- [x] Add parameter definition interface
+- [x] Create template validation UI
 
 ### Embedded Mode Support
 - [ ] Create mountable route module for /anvil
@@ -34,6 +34,17 @@
 - [ ] Build review workflow UI
 - [ ] Create approval queue interface
 
+### Additional UI Features (Completed)
+- [x] Implement breadcrumb navigation component
+- [x] Create command palette with keyboard shortcuts (Cmd+K)
+- [x] Convert all pages to LiveViews for consistent experience
+- [x] Add global search/command functionality
+- [x] Create Dashboard, Account, Settings, and Help pages
+- [x] Implement parameter validation and auto-extraction
+- [x] Add visual validation feedback for templates
+- [x] Fix PostgreSQL array type handling for parameters
+- [x] Create custom Ash type for parameter lists
+
 ## Phase 3: Client Library (Consumer SDK)
 
 ### Core Client Functions
@@ -41,7 +52,7 @@
 - [ ] Create address parser (Anvil.Resolver)
 - [ ] Build local cache (Anvil.Cache)
 - [ ] Implement registry client (Anvil.Registry)
-- [ ] Add template renderer (Anvil.Template)
+- [x] Add template renderer (Anvil.Template) - using Solid
 
 ### Mix Tasks
 - [ ] Create mix anvil.init task
