@@ -1,0 +1,82 @@
+<div class="max-w-4xl">
+  <!-- Page Header -->
+  <div class="mb-8">
+    <.link
+      navigate={~p"/projects/#{@project}"}
+      class="text-sm text-base-content/60 hover:text-primary font-mono mb-2 inline-block"
+    >
+      ← Back to Project
+    </.link>
+    <h1 class="text-3xl font-bold text-primary uppercase tracking-wider font-mono">
+      ▪ Edit Project
+    </h1>
+    <p class="text-base-content/60 font-mono mt-2">
+      Update project information for @{@project.repository}
+    </p>
+  </div>
+  
+<!-- Form Card -->
+  <div class="bg-base-100 border-2 border-primary p-8">
+    <.form for={@form} id="project-form" phx-change="validate" phx-submit="save">
+      <div class="space-y-6">
+        <!-- Project Name -->
+        <div>
+          <label class="label">
+            <span class="label-text font-mono uppercase text-primary">Project Name</span>
+          </label>
+          <.input
+            field={@form[:name]}
+            type="text"
+            placeholder="My Awesome Project"
+            class="input input-bordered input-primary w-full font-mono"
+            phx-debounce="blur"
+          />
+        </div>
+        
+<!-- Repository (Read-only) -->
+        <div>
+          <label class="label">
+            <span class="label-text font-mono uppercase text-primary">Repository</span>
+          </label>
+          <div class="input input-bordered input-primary w-full font-mono bg-base-200 cursor-not-allowed">
+            {@project.repository}
+          </div>
+          <label class="label">
+            <span class="label-text-alt text-base-content/60 font-mono">
+              Repository identifier cannot be changed after creation
+            </span>
+          </label>
+        </div>
+        
+<!-- Description -->
+        <div>
+          <label class="label">
+            <span class="label-text font-mono uppercase text-primary">Description</span>
+            <span class="label-text-alt text-base-content/60 font-mono">(Optional)</span>
+          </label>
+          <.input
+            field={@form[:description]}
+            type="textarea"
+            placeholder="Describe what this project is for..."
+            class="textarea textarea-bordered textarea-primary w-full font-mono h-24"
+            phx-debounce="blur"
+          />
+        </div>
+        
+<!-- Form Actions -->
+        <div class="flex items-center justify-between pt-6 border-t-2 border-base-300">
+          <.link navigate={~p"/projects/#{@project}"} class="btn btn-ghost font-mono uppercase">
+            Cancel
+          </.link>
+          <.button
+            type="submit"
+            phx-disable-with="Saving..."
+            class="btn btn-primary font-mono uppercase"
+          >
+            Save Changes
+          </.button>
+        </div>
+      </div>
+    </.form>
+  </div>
+</div>

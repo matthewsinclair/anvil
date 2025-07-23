@@ -65,6 +65,18 @@ defmodule AnvilWeb.Router do
       #
       # If an authenticated user must *not* be present:
       # on_mount {AnvilWeb.LiveUserAuth, :live_no_user}
+
+      # Prompt management routes
+      live "/projects", ProjectLive.Index, :index
+      live "/projects/new", ProjectLive.New, :new
+      live "/projects/:id", ProjectLive.Show, :show
+      live "/projects/:id/edit", ProjectLive.Edit, :edit
+
+      # TODO: Add prompt set routes when PromptSetLive modules are created
+      # live "/projects/:project_id/prompts", PromptSetLive.Index, :index
+      # live "/projects/:project_id/prompts/new", PromptSetLive.Index, :new
+      # live "/projects/:project_id/prompts/:id", PromptSetLive.Show, :show
+      # live "/projects/:project_id/prompts/:id/edit", PromptSetLive.Index, :edit
     end
   end
 

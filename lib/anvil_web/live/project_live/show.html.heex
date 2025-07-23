@@ -1,0 +1,106 @@
+<div class="space-y-6">
+  <!-- Project Header -->
+  <div class="bg-base-100 border-2 border-primary p-6">
+    <div class="flex items-start justify-between">
+      <div class="flex-1">
+        <h1 class="text-3xl font-bold text-primary uppercase tracking-wider font-mono">
+          {@project.name}
+        </h1>
+        <p class="text-sm text-base-content/60 font-mono mt-1">
+          @{@project.repository}
+        </p>
+        <p :if={@project.description} class="text-base text-base-content/80 font-mono mt-4">
+          {@project.description}
+        </p>
+      </div>
+
+      <div class="flex gap-2">
+        <.link href="#" class="btn btn-primary btn-sm font-mono uppercase">
+          View Prompts →
+        </.link>
+        <.link
+          navigate={~p"/projects/#{@project}/edit"}
+          class="btn btn-outline btn-sm font-mono uppercase"
+        >
+          Edit
+        </.link>
+      </div>
+    </div>
+  </div>
+  
+<!-- Quick Stats -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="bg-base-100 border-2 border-base-300 p-4 text-center">
+      <div class="text-2xl font-bold text-primary font-mono">
+        {length(@project.prompt_sets || [])}
+      </div>
+      <div class="text-xs text-base-content/60 uppercase font-mono mt-1">
+        Prompt Sets
+      </div>
+    </div>
+
+    <div class="bg-base-100 border-2 border-base-300 p-4 text-center">
+      <div class="text-2xl font-bold text-secondary font-mono">
+        {count_total_prompts(@project)}
+      </div>
+      <div class="text-xs text-base-content/60 uppercase font-mono mt-1">
+        Total Prompts
+      </div>
+    </div>
+
+    <div class="bg-base-100 border-2 border-base-300 p-4 text-center">
+      <div class="text-2xl font-bold text-accent font-mono">
+        {count_versions(@project)}
+      </div>
+      <div class="text-xs text-base-content/60 uppercase font-mono mt-1">
+        Versions
+      </div>
+    </div>
+  </div>
+  
+<!-- Recent Prompt Sets -->
+  <div class="bg-base-100 border-2 border-base-300">
+    <div class="p-4 border-b-2 border-base-300">
+      <h2 class="text-lg font-bold uppercase tracking-wider font-mono text-primary">
+        Recent Prompt Sets
+      </h2>
+    </div>
+
+    <div class="divide-y-2 divide-base-300">
+      <div
+        :for={prompt_set <- recent_prompt_sets(@project)}
+        class="p-4 hover:bg-base-200 transition-colors"
+      >
+        <.link href="#" class="block">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-mono font-bold text-primary">
+                {prompt_set.name}
+              </h3>
+              <p class="text-xs text-base-content/60 font-mono">
+                v{prompt_set.version} • {format_date(prompt_set.created_at)}
+              </p>
+            </div>
+            <div class="text-right">
+              <span class={[
+                "badge badge-sm font-mono uppercase",
+                badge_class_for_edit_mode(prompt_set.edit_mode)
+              ]}>
+                {prompt_set.edit_mode}
+              </span>
+            </div>
+          </div>
+        </.link>
+      </div>
+
+      <div :if={Enum.empty?(@project.prompt_sets || [])} class="p-8 text-center">
+        <p class="text-base-content/60 font-mono mb-4">
+          No prompt sets yet
+        </p>
+        <.link href="#" class="btn btn-primary btn-sm font-mono uppercase">
+          + Create First Prompt Set
+        </.link>
+      </div>
+    </div>
+  </div>
+</div>

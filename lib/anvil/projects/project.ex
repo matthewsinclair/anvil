@@ -9,24 +9,23 @@ defmodule Anvil.Projects.Project do
     repo Anvil.Repo
   end
 
-  code_interface do
-    define :create, args: [:name, :repository]
-    define :read_all, action: :read
-    define :by_id, get_by: [:id], action: :read
-    define :update
-    define :destroy
-  end
-
   actions do
     defaults [:read, :destroy]
 
     create :create do
       accept [:name, :description, :repository]
 
+      change relate_actor(:owner)
+
       change fn changeset, _ ->
-        name = Ash.Changeset.get_attribute(changeset, :name)
-        slug = name |> String.downcase() |> String.replace(" ", "-")
-        Ash.Changeset.change_attribute(changeset, :slug, slug)
+        case Ash.Changeset.get_attribute(changeset, :name) do
+          nil ->
+            changeset
+
+          name ->
+            slug = name |> String.downcase() |> String.replace(" ", "-")
+            Ash.Changeset.change_attribute(changeset, :slug, slug)
+        end
       end
     end
 

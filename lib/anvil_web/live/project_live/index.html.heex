@@ -1,0 +1,107 @@
+<div class="space-y-6">
+  <!-- Header with New Project button -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-primary uppercase tracking-wider font-mono">
+        ▪ Projects
+      </h1>
+      <p class="text-sm text-base-content/60 font-mono mt-1">
+        Manage your prompt repositories
+      </p>
+    </div>
+
+    <.link navigate={~p"/projects/new"} class="btn btn-primary btn-sm font-mono uppercase">
+      + New Project
+    </.link>
+  </div>
+  
+<!-- Projects Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div :for={{id, project} <- @streams.projects} id={id} class="group">
+      <div class="card bg-base-100 border-2 border-base-300 hover:border-primary transition-colors">
+        <div class="card-body p-4">
+          <!-- Project Header -->
+          <div class="flex items-start justify-between">
+            <.link navigate={~p"/projects/#{project}"} class="flex-1">
+              <h3 class="card-title text-lg font-mono uppercase text-primary group-hover:underline">
+                {project.name}
+              </h3>
+              <p class="text-xs text-base-content/60 font-mono">
+                @{project.repository}
+              </p>
+            </.link>
+            
+<!-- Actions Menu -->
+            <div class="dropdown dropdown-end">
+              <label tabindex="0" class="btn btn-ghost btn-xs">⋮</label>
+              <ul
+                tabindex="0"
+                class="dropdown-content menu p-2 shadow-lg bg-base-100 border-2 border-primary w-32 font-mono text-xs uppercase"
+              >
+                <li>
+                  <.link navigate={~p"/projects/#{project}/edit"}>
+                    Edit
+                  </.link>
+                </li>
+                <li>
+                  <.link
+                    phx-click="delete"
+                    phx-value-id={project.id}
+                    data-confirm="Are you sure?"
+                    class="text-error hover:bg-error/20"
+                  >
+                    Delete
+                  </.link>
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+<!-- Project Description -->
+          <p :if={project.description} class="text-sm text-base-content/80 font-mono mt-2">
+            {project.description}
+          </p>
+          
+<!-- Project Stats -->
+          <div class="flex gap-4 mt-4 pt-4 border-t-2 border-base-300">
+            <div class="text-center">
+              <div class="text-lg font-bold text-primary font-mono">
+                {project.prompt_sets_count || 0}
+              </div>
+              <div class="text-[10px] text-base-content/60 uppercase font-mono">
+                Prompts
+              </div>
+            </div>
+            <div class="text-center">
+              <div class="text-lg font-bold text-secondary font-mono">
+                {project.versions_count || 0}
+              </div>
+              <div class="text-[10px] text-base-content/60 uppercase font-mono">
+                Versions
+              </div>
+            </div>
+          </div>
+          
+<!-- View Prompts Link -->
+          <div class="mt-4">
+            <.link href="#" class="btn btn-sm btn-block btn-outline font-mono uppercase">
+              View Prompts →
+            </.link>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+<!-- Empty State -->
+  <div :if={not @has_projects} class="text-center py-12">
+    <div class="inline-block p-8 bg-base-100 border-2 border-dashed border-base-300">
+      <p class="text-lg font-mono text-base-content/60 mb-4">
+        No projects yet
+      </p>
+      <.link navigate={~p"/projects/new"} class="btn btn-primary btn-sm font-mono uppercase">
+        + Create Your First Project
+      </.link>
+    </div>
+  </div>
+</div>

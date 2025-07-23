@@ -17,5 +17,7 @@
   </div>
   
 <!-- Sidebar -->
-  <AnvilWeb.Components.Common.SidebarComponent.sidebar current_path={@conn.request_path} />
+  <AnvilWeb.Components.Common.SidebarComponent.sidebar current_path={
+    assigns[:current_path] || @conn.request_path
+  } />
 </div>
