@@ -12,10 +12,10 @@ defmodule AnvilWeb.Components.Common.DashboardHeaderComponent do
 
   ## Examples
 
-      <.dashboard_header current_user={@current_user} title="Dashboard" />
+      <.dashboard_header current_user={@current_user} is_live_view={true} />
   """
   attr :current_user, :any, default: nil
-  attr :title, :string, default: "Dashboard"
+  attr :is_live_view, :boolean, default: false
 
   def dashboard_header(assigns) do
     ~H"""
@@ -32,21 +32,28 @@ defmodule AnvilWeb.Components.Common.DashboardHeaderComponent do
         <!-- Spacer to balance the layout -->
       </div>
       
-    <!-- Center - Command/Search box -->
+    <!-- Center - Command Palette -->
       <div class="navbar-center">
         <div class="form-control">
-          <div class="flex items-center gap-2">
-            <input
-              type="text"
-              placeholder="Type to search or run commands..."
-              class="w-64 lg:w-96 h-8 px-3 font-mono bg-amber-900/20 border-2 border-primary text-amber-100 placeholder-amber-100/60 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:border-yellow-400"
-              style="background-color: rgba(120, 53, 15, 0.2) !important;"
-              disabled
+          <%= if @is_live_view do %>
+            <.live_component
+              module={AnvilWeb.Components.Common.CommandPaletteComponent}
+              id="global-command-palette"
             />
-            <kbd class="kbd kbd-sm bg-base-100 border-2 border-primary shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-              ⌘
-            </kbd>
-          </div>
+          <% else %>
+            <div class="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Type to search or run commands..."
+                class="w-64 lg:w-96 h-8 px-3 font-mono bg-amber-900/20 border-2 border-primary text-amber-100 placeholder-amber-100/60 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:border-yellow-400"
+                style="background-color: rgba(120, 53, 15, 0.2) !important;"
+                disabled
+              />
+              <kbd class="kbd kbd-sm bg-base-100 border-2 border-primary shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                ⌘K
+              </kbd>
+            </div>
+          <% end %>
         </div>
       </div>
       

@@ -137,7 +137,7 @@ defmodule AnvilWeb.Router do
   scope "/", AnvilWeb do
     pipe_through [:browser, :authenticated]
 
-    get "/app", PageController, :dashboard
+    live "/app", DashboardLive, :index
     get "/dashboard", PageController, :dashboard
     get "/account", PageController, :account
     get "/settings", PageController, :settings

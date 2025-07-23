@@ -1,4 +1,4 @@
-<div class="drawer lg:drawer-open">
+<div class="drawer lg:drawer-open" phx-window-keydown="global_keydown">
   <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
   
 <!-- Main Content -->
@@ -6,7 +6,7 @@
     <!-- Dashboard Header -->
     <AnvilWeb.Components.Common.DashboardHeaderComponent.dashboard_header
       current_user={assigns[:current_user]}
-      title={assigns[:page_title] || "Dashboard"}
+      is_live_view={assigns[:socket] != nil}
     />
     
 <!-- Main Content Area -->
@@ -23,6 +23,6 @@
   
 <!-- Sidebar -->
   <AnvilWeb.Components.Common.SidebarComponent.sidebar current_path={
-    assigns[:current_path] || @conn.request_path
+    assigns[:current_path] || (assigns[:conn] && @conn.request_path) || "/"
   } />
 </div>

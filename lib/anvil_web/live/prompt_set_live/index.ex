@@ -1,5 +1,6 @@
 defmodule AnvilWeb.PromptSetLive.Index do
   use AnvilWeb, :live_view
+  use AnvilWeb.Live.CommandPaletteHandler
 
   alias Anvil.Projects
   alias Anvil.Prompts

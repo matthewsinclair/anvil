@@ -1,5 +1,6 @@
 defmodule AnvilWeb.ProjectLive.Index do
   use AnvilWeb, :live_view
+  use AnvilWeb.Live.CommandPaletteHandler
 
   alias Anvil.Projects
 
