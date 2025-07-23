@@ -1,6 +1,9 @@
 # The directory Mix will write compiled artifacts to.
 /_build/
 
+# Don't need the LS stuff checked in, either
+.elixir_ls
+
 # If you run "mix test --cover", coverage assets end up here.
 /cover/
 
@@ -34,4 +37,15 @@ anvil-*.tar
 # In case you use Node.js/npm, you want to ignore these.
 npm-debug.log
 /assets/node_modules/
+
+# Ignore the _port directory completely
+_port
+_port/**/*
+
+# Ignore any .env files 
+.env 
+.env.*
+
+# Ignore logs directory
+.anvil/logs/
 
