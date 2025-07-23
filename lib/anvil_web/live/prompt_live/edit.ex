@@ -40,6 +40,7 @@ defmodule AnvilWeb.PromptLive.Edit do
      |> assign(:prompt, prompt)
      |> assign(:form, form)
      |> assign(:parameters, parameters)
+     |> assign(:validation_result, nil)
      |> assign(:breadcrumb_items, [
        %{label: "Projects", href: ~p"/projects"},
        %{label: project.name, href: ~p"/projects/#{project}"},
@@ -120,6 +121,36 @@ defmodule AnvilWeb.PromptLive.Edit do
     {:noreply, assign(socket, :parameters, parameters)}
   end
 
+  def handle_event("validate_template", _, socket) do
+    template = get_form_value(socket.assigns.form, :template) || ""
+
+    validation_result =
+      Anvil.Template.Analyzer.validate_parameters(template, socket.assigns.parameters)
+
+    {:noreply, assign(socket, :validation_result, validation_result)}
+  end
+
+  def handle_event("auto_populate_parameters", _, socket) do
+    template = get_form_value(socket.assigns.form, :template) || ""
+
+    validation_result =
+      Anvil.Template.Analyzer.validate_parameters(template, socket.assigns.parameters)
+
+    # Create new parameters for missing variables
+    new_params = Anvil.Template.Analyzer.create_parameter_definitions(validation_result.missing)
+
+    # Combine with existing parameters
+    updated_parameters = socket.assigns.parameters ++ new_params
+
+    {:noreply,
+     socket
+     |> assign(:parameters, updated_parameters)
+     |> assign(
+       :validation_result,
+       Anvil.Template.Analyzer.validate_parameters(template, updated_parameters)
+     )}
+  end
+
   # Delegate other events to the CommandPaletteHandler
   def handle_event(event, params, socket) do
     super(event, params, socket)
@@ -161,4 +192,11 @@ defmodule AnvilWeb.PromptLive.Edit do
   end
 
   defp parse_parameters(_), do: []
+
+  defp get_form_value(form, field) do
+    case AshPhoenix.Form.value(form, field) do
+      nil -> nil
+      value -> value
+    end
+  end
 end

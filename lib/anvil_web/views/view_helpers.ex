@@ -42,4 +42,5 @@ defmodule AnvilWeb.ViewHelpers do
   def retro_icon(:logout), do: "⬅"
   def retro_icon(:code), do: "{ }"
   def retro_icon(:remove), do: "−"
+  def retro_icon(:check), do: "✓"
 end

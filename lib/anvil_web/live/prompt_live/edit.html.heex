@@ -50,6 +50,97 @@
           >{Phoenix.HTML.Form.input_value(@form, :template)}</textarea>
         </div>
         
+<!-- Template Validation -->
+        <div :if={@validation_result} class="bg-base-200 p-4 rounded-lg space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="font-mono font-bold uppercase text-primary">Validation Results</h3>
+            <button
+              :if={length(@validation_result.missing) > 0}
+              type="button"
+              phx-click="auto_populate_parameters"
+              class="btn btn-sm btn-primary font-mono"
+            >
+              {retro_icon(:add)} Auto-populate Missing
+            </button>
+          </div>
+
+          <div :if={length(@validation_result.missing) > 0} class="alert alert-error">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="stroke-current shrink-0 h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <div>
+              <h3 class="font-bold">Missing Parameters</h3>
+              <div class="text-xs">These variables are used in the template but not defined:</div>
+              <div class="flex gap-2 mt-2 flex-wrap">
+                <%= for var <- @validation_result.missing do %>
+                  <code class="badge badge-error font-mono">{var}</code>
+                <% end %>
+              </div>
+            </div>
+          </div>
+
+          <div :if={length(@validation_result.unused) > 0} class="alert alert-warning">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="stroke-current shrink-0 h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+            <div>
+              <h3 class="font-bold">Unused Parameters</h3>
+              <div class="text-xs">
+                These parameters are defined but not used in the template:
+              </div>
+              <div class="flex gap-2 mt-2 flex-wrap">
+                <%= for var <- @validation_result.unused do %>
+                  <code class="badge badge-warning font-mono">{var}</code>
+                <% end %>
+              </div>
+            </div>
+          </div>
+
+          <div :if={length(@validation_result.matched) > 0} class="alert alert-success">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="stroke-current shrink-0 h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <div>
+              <h3 class="font-bold">Matched Parameters</h3>
+              <div class="flex gap-2 mt-2 flex-wrap">
+                <%= for var <- @validation_result.matched do %>
+                  <code class="badge badge-success font-mono">{var}</code>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+        
 <!-- Parameters -->
         <div>
           <label class="label">
@@ -156,13 +247,22 @@
           >
             Cancel
           </.link>
-          <.button
-            type="submit"
-            phx-disable-with="Saving..."
-            class="btn btn-primary font-mono uppercase"
-          >
-            Save Changes
-          </.button>
+          <div class="flex gap-2">
+            <button
+              type="button"
+              phx-click="validate_template"
+              class="btn btn-outline font-mono uppercase"
+            >
+              {retro_icon(:check)} Validate
+            </button>
+            <.button
+              type="submit"
+              phx-disable-with="Saving..."
+              class="btn btn-primary font-mono uppercase"
+            >
+              Save Changes
+            </.button>
+          </div>
         </div>
       </div>
     </.form>
