@@ -8,12 +8,9 @@ defmodule AnvilWeb.Live.CommandPaletteHandler do
       # Always catch the global_keydown event and delegate to command palette handler
       @impl true
       def handle_event("global_keydown", params, socket) do
-        IO.puts("CommandPaletteHandler received: #{inspect(params)}")
-
         case params do
           # Cmd+K (Mac only)
           %{"key" => "k", "metaKey" => true, "ctrlKey" => false} ->
-            IO.puts("Opening command palette!")
             send(self(), :open_command_palette)
             {:noreply, socket}
 

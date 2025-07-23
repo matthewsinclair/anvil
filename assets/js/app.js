@@ -113,12 +113,10 @@ window.liveSocket = liveSocket
 window.addEventListener("keydown", (e) => {
   // Cmd+K (Mac only, not Ctrl+K)
   if (e.metaKey && !e.ctrlKey && e.key === "k") {
-    console.log("Cmd+K pressed, hook available:", !!window.__commandPaletteHook)
     e.preventDefault()
     e.stopPropagation()
     
     if (window.__commandPaletteHook) {
-      console.log("Sending event to server")
       // Send event to the server with modifier keys
       window.__commandPaletteHook.pushEvent("global_keydown", {
         key: e.key,
