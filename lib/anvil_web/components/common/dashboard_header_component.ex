@@ -8,14 +8,13 @@ defmodule AnvilWeb.Components.Common.DashboardHeaderComponent do
   """
 
   @doc """
-  Renders the dashboard header.
+  Renders the dashboard header with command palette.
 
   ## Examples
 
-      <.dashboard_header current_user={@current_user} is_live_view={true} />
+      <.dashboard_header current_user={@current_user} />
   """
   attr :current_user, :any, default: nil
-  attr :is_live_view, :boolean, default: false
 
   def dashboard_header(assigns) do
     ~H"""
@@ -35,25 +34,10 @@ defmodule AnvilWeb.Components.Common.DashboardHeaderComponent do
     <!-- Center - Command Palette -->
       <div class="navbar-center">
         <div class="form-control">
-          <%= if @is_live_view do %>
-            <.live_component
-              module={AnvilWeb.Components.Common.CommandPaletteComponent}
-              id="global-command-palette"
-            />
-          <% else %>
-            <div class="flex items-center gap-2">
-              <input
-                type="text"
-                placeholder="Type to search or run commands..."
-                class="w-64 lg:w-96 h-8 px-3 font-mono bg-amber-900/20 border-2 border-primary text-amber-100 placeholder-amber-100/60 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:border-yellow-400"
-                style="background-color: rgba(120, 53, 15, 0.2) !important;"
-                disabled
-              />
-              <kbd class="kbd kbd-sm bg-base-100 border-2 border-primary shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                ⌘K
-              </kbd>
-            </div>
-          <% end %>
+          <.live_component
+            module={AnvilWeb.Components.Common.CommandPaletteComponent}
+            id="global-command-palette"
+          />
         </div>
       </div>
       

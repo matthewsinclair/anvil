@@ -14,7 +14,7 @@ defmodule AnvilWeb.Components.Common.CommandPaletteComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div id={@id} class="relative">
+    <div id={@id} class="relative" data-open={@open}>
       <div class="flex items-center gap-2">
         <input
           id={"#{@id}-input"}
@@ -29,6 +29,7 @@ defmodule AnvilWeb.Components.Common.CommandPaletteComponent do
           phx-keydown="navigate"
           phx-key="Enter|ArrowUp|ArrowDown|Escape"
           phx-hook="CommandPalette"
+          autofocus={@open}
         />
         <kbd class="kbd kbd-sm bg-base-100 border-2 border-primary shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
           ⌘K
@@ -133,14 +134,24 @@ defmodule AnvilWeb.Components.Common.CommandPaletteComponent do
 
   @impl true
   def update(%{open_palette: true} = assigns, socket) do
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> assign(:open, true)
-     |> push_event("focus", %{id: "#{assigns.id}-input"})}
+    IO.puts("CommandPaletteComponent: Opening palette!")
+
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign(:open, true)
+      |> assign(:query, "")
+      |> assign(:results, [])
+      |> assign(:selected_index, 0)
+
+    # Push focus event to the input element
+    socket = push_event(socket, "focus", %{})
+
+    {:ok, socket}
   end
 
   def update(assigns, socket) do
+    IO.puts("CommandPaletteComponent: Regular update with assigns: #{inspect(Map.keys(assigns))}")
     {:ok, assign(socket, assigns)}
   end
 

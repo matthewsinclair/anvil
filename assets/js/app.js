@@ -31,13 +31,55 @@ const Hooks = {}
 
 Hooks.CommandPalette = {
   mounted() {
+    console.log("CommandPalette hook mounted on:", this.el)
+    
+    // Store reference to the element
+    const input = this.el
+    
+    // Watch for changes to the data-open attribute
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'data-open') {
+          const parent = input.closest('[data-open]')
+          console.log("data-open changed, parent:", parent, "value:", parent?.dataset.open)
+          if (parent && parent.dataset.open === 'true') {
+            console.log("Opening command palette - focusing input")
+            setTimeout(() => {
+              input.focus()
+              input.select()
+            }, 100)
+          }
+        }
+      })
+    })
+    
+    // Start observing the parent element
+    const parent = this.el.closest('[data-open]')
+    console.log("Parent element:", parent)
+    if (parent) {
+      observer.observe(parent, { attributes: true })
+    }
+    
     this.handleEvent("focus", () => {
-      this.el.focus()
-      this.el.select()
+      console.log("Focus event received!")
+      input.focus()
+      input.select()
     })
+    
     this.handleEvent("blur", () => {
-      this.el.blur()
+      console.log("Blur event received!")
+      input.blur()
     })
+    
+    // Make this hook available globally for the keyboard handler
+    window.__commandPaletteHook = this
+  },
+  
+  destroyed() {
+    console.log("CommandPalette hook destroyed")
+    if (window.__commandPaletteHook === this) {
+      window.__commandPaletteHook = null
+    }
   }
 }
 
@@ -60,6 +102,27 @@ liveSocket.connect()
 // >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
+
+// Global keyboard handler for Cmd+K
+window.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    console.log("Cmd+K pressed, hook available:", !!window.__commandPaletteHook)
+    
+    if (window.__commandPaletteHook) {
+      // Send event to the server with modifier keys
+      window.__commandPaletteHook.pushEvent("global_keydown", {
+        key: e.key,
+        metaKey: e.metaKey,
+        ctrlKey: e.ctrlKey,
+        altKey: e.altKey,
+        shiftKey: e.shiftKey
+      })
+    }
+  }
+})
 
 // The lines below enable quality of life phoenix_live_reload
 // development features:

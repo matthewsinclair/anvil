@@ -1,13 +1,12 @@
-<div class="drawer lg:drawer-open" phx-window-keydown="global_keydown">
+<div class="drawer lg:drawer-open">
   <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
   
 <!-- Main Content -->
   <div class="drawer-content flex flex-col min-h-screen bg-base-300">
     <!-- Dashboard Header -->
-    <AnvilWeb.Components.Common.DashboardHeaderComponent.dashboard_header
-      current_user={assigns[:current_user]}
-      is_live_view={assigns[:socket] != nil}
-    />
+    <AnvilWeb.Components.Common.DashboardHeaderComponent.dashboard_header current_user={
+      assigns[:current_user]
+    } />
     
 <!-- Main Content Area -->
     <main class="flex-1 p-4 sm:p-6 lg:p-8">

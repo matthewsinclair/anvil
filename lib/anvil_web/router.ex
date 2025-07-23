@@ -105,7 +105,7 @@ defmodule AnvilWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
-    get "/help", PageController, :help
+    live "/help", HelpLive, :index
 
     auth_routes AuthController, Anvil.Accounts.User, path: "/auth"
     sign_out_route AuthController
@@ -138,9 +138,8 @@ defmodule AnvilWeb.Router do
     pipe_through [:browser, :authenticated]
 
     live "/app", DashboardLive, :index
-    get "/dashboard", PageController, :dashboard
-    get "/account", PageController, :account
-    get "/settings", PageController, :settings
+    live "/account", AccountLive, :index
+    live "/settings", SettingsLive, :index
   end
 
   # Other scopes may use custom stacks.
