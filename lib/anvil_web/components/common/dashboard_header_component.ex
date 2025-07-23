@@ -32,13 +32,9 @@ defmodule AnvilWeb.Components.Common.DashboardHeaderComponent do
         <!-- Spacer to balance the layout -->
       </div>
       
-    <!-- Center - Empty for LiveView command palette -->
+    <!-- Center - Spacer -->
       <div class="navbar-center">
-        <div class="form-control">
-          <div id="command-palette-mount-point">
-            <!-- Command palette will be mounted here in LiveViews -->
-          </div>
-        </div>
+        <!-- Empty spacer for layout balance -->
       </div>
       
     <!-- Right side - User Menu -->

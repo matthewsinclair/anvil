@@ -23,7 +23,8 @@ defmodule AnvilWeb.LiveViewHelpers do
   """
   def command_palette(assigns) do
     ~H"""
-    <div id="command-palette-teleport" phx-hook="CommandPaletteTeleport" phx-update="ignore">
+    <!-- Command Palette - Positioned in header -->
+    <div class="fixed top-4 left-1/2 -translate-x-1/2 z-[60]">
       <.live_component
         module={AnvilWeb.Components.Common.CommandPaletteComponent}
         id="global-command-palette"

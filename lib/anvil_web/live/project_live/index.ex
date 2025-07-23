@@ -1,7 +1,6 @@
 defmodule AnvilWeb.ProjectLive.Index do
   use AnvilWeb, :live_view
   use AnvilWeb.Live.CommandPaletteHandler
-  import AnvilWeb.LiveViewHelpers
 
   alias Anvil.Projects
 
@@ -62,6 +61,11 @@ defmodule AnvilWeb.ProjectLive.Index do
       {:error, _error} ->
         {:noreply, put_flash(socket, :error, "Failed to delete project")}
     end
+  end
+
+  # Delegate other events to the CommandPaletteHandler
+  def handle_event(event, params, socket) do
+    super(event, params, socket)
   end
 
   defp list_projects(socket) do

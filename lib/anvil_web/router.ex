@@ -54,17 +54,12 @@ defmodule AnvilWeb.Router do
   scope "/", AnvilWeb do
     pipe_through :browser
 
-    ash_authentication_live_session :authenticated_routes do
-      # in each liveview, add one of the following at the top of the module:
-      #
-      # If an authenticated user must be present:
-      # on_mount {AnvilWeb.LiveUserAuth, :live_user_required}
-      #
-      # If an authenticated user *may* be present:
-      # on_mount {AnvilWeb.LiveUserAuth, :live_user_optional}
-      #
-      # If an authenticated user must *not* be present:
-      # on_mount {AnvilWeb.LiveUserAuth, :live_no_user}
+    ash_authentication_live_session :authenticated_routes,
+      on_mount: [{AnvilWeb.LiveUserAuth, :live_user_required}] do
+      # Dashboard and account pages
+      live "/app", DashboardLive, :index
+      live "/account", AccountLive, :index
+      live "/settings", SettingsLive, :index
 
       # Prompt management routes
       live "/projects", ProjectLive.Index, :index
@@ -131,15 +126,6 @@ defmodule AnvilWeb.Router do
       auth_routes_prefix: "/auth",
       overrides: [AnvilWeb.AuthOverrides, AshAuthentication.Phoenix.Overrides.Default]
     )
-  end
-
-  # Authenticated routes
-  scope "/", AnvilWeb do
-    pipe_through [:browser, :authenticated]
-
-    live "/app", DashboardLive, :index
-    live "/account", AccountLive, :index
-    live "/settings", SettingsLive, :index
   end
 
   # Other scopes may use custom stacks.

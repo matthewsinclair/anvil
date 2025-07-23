@@ -1,6 +1,16 @@
 <div class="drawer lg:drawer-open">
   <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
   
+<!-- Command Palette - Positioned in header, only in LiveView context -->
+  <%= if assigns[:socket] do %>
+    <div class="fixed top-4 left-1/2 -translate-x-1/2 z-[60]">
+      <.live_component
+        module={AnvilWeb.Components.Common.CommandPaletteComponent}
+        id="global-command-palette"
+      />
+    </div>
+  <% end %>
+  
 <!-- Main Content -->
   <div class="drawer-content flex flex-col min-h-screen bg-base-300">
     <!-- Dashboard Header -->

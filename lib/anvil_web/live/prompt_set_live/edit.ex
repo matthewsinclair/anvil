@@ -1,7 +1,6 @@
 defmodule AnvilWeb.PromptSetLive.Edit do
   use AnvilWeb, :live_view
   use AnvilWeb.Live.CommandPaletteHandler
-  import AnvilWeb.LiveViewHelpers
 
   alias Anvil.Projects
   alias Anvil.Prompts
@@ -117,6 +116,11 @@ defmodule AnvilWeb.PromptSetLive.Edit do
       {:error, form} ->
         {:noreply, assign(socket, form: form)}
     end
+  end
+
+  # Delegate other events to the CommandPaletteHandler
+  def handle_event(event, params, socket) do
+    super(event, params, socket)
   end
 
   defp build_form(prompt_set, actor) do

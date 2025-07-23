@@ -1,7 +1,6 @@
 defmodule AnvilWeb.PromptSetLive.Index do
   use AnvilWeb, :live_view
   use AnvilWeb.Live.CommandPaletteHandler
-  import AnvilWeb.LiveViewHelpers
 
   alias Anvil.Projects
   alias Anvil.Prompts
@@ -81,5 +80,10 @@ defmodule AnvilWeb.PromptSetLive.Index do
       {:error, _error} ->
         {:noreply, put_flash(socket, :error, "Failed to delete prompt set")}
     end
+  end
+
+  # Delegate other events to the CommandPaletteHandler
+  def handle_event(event, params, socket) do
+    super(event, params, socket)
   end
 end

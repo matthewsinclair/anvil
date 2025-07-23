@@ -1,7 +1,6 @@
 defmodule AnvilWeb.ProjectLive.New do
   use AnvilWeb, :live_view
   use AnvilWeb.Live.CommandPaletteHandler
-  import AnvilWeb.LiveViewHelpers
 
   alias Anvil.Projects
 
@@ -43,6 +42,11 @@ defmodule AnvilWeb.ProjectLive.New do
       {:error, form} ->
         {:noreply, assign(socket, form: form)}
     end
+  end
+
+  # Delegate other events to the CommandPaletteHandler
+  def handle_event(event, params, socket) do
+    super(event, params, socket)
   end
 
   defp build_form(actor) do
