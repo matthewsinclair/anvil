@@ -31,7 +31,6 @@ const Hooks = {}
 
 Hooks.CommandPalette = {
   mounted() {
-    console.log("CommandPalette hook mounted on:", this.el)
     
     // Store reference to the element
     const input = this.el
@@ -41,9 +40,7 @@ Hooks.CommandPalette = {
       mutations.forEach((mutation) => {
         if (mutation.type === 'attributes' && mutation.attributeName === 'data-open') {
           const parent = input.closest('[data-open]')
-          console.log("data-open changed, parent:", parent, "value:", parent?.dataset.open)
           if (parent && parent.dataset.open === 'true') {
-            console.log("Opening command palette - focusing input")
             setTimeout(() => {
               input.focus()
               input.select()
@@ -55,19 +52,16 @@ Hooks.CommandPalette = {
     
     // Start observing the parent element
     const parent = this.el.closest('[data-open]')
-    console.log("Parent element:", parent)
     if (parent) {
       observer.observe(parent, { attributes: true })
     }
     
     this.handleEvent("focus", () => {
-      console.log("Focus event received!")
       input.focus()
       input.select()
     })
     
     this.handleEvent("blur", () => {
-      console.log("Blur event received!")
       input.blur()
     })
     
@@ -76,7 +70,6 @@ Hooks.CommandPalette = {
   },
   
   destroyed() {
-    console.log("CommandPalette hook destroyed")
     if (window.__commandPaletteHook === this) {
       window.__commandPaletteHook = null
     }
@@ -108,8 +101,6 @@ window.addEventListener("keydown", (e) => {
   if ((e.metaKey || e.ctrlKey) && e.key === "k") {
     e.preventDefault()
     e.stopPropagation()
-    
-    console.log("Cmd+K pressed, hook available:", !!window.__commandPaletteHook)
     
     if (window.__commandPaletteHook) {
       // Send event to the server with modifier keys
