@@ -39,10 +39,13 @@ defmodule AnvilWeb.Components.Common.DashboardHeaderComponent do
             <input
               type="text"
               placeholder="Type to search or run commands..."
-              class="input input-bordered input-primary input-sm w-64 lg:w-96 font-mono bg-base-200 border-base-content/20 placeholder-base-content/40"
+              class="w-64 lg:w-96 h-8 px-3 font-mono bg-amber-900/20 border-2 border-primary text-amber-100 placeholder-amber-100/60 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:border-yellow-400"
+              style="background-color: rgba(120, 53, 15, 0.2) !important;"
               disabled
             />
-            <kbd class="kbd kbd-sm">⌘</kbd>
+            <kbd class="kbd kbd-sm bg-base-100 border-2 border-primary shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+              ⌘
+            </kbd>
           </div>
         </div>
       </div>
