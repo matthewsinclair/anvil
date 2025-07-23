@@ -70,12 +70,9 @@ defmodule Anvil.MixProject do
       {:dns_cluster, "~> 0.2"},
       {:bandit, "~> 1.6"},
       {:nimble_csv, "~> 1.2"},
-      {:phoenix_test,
-       github: "germsvel/phoenix_test",
-       branch: "main",
-       only: :test,
-       runtime: false,
-       override: true},
+      # phoenix_test 0.7 has issues with Phoenix RC versions
+      # Remove or replace with a working version when needed
+      # {:phoenix_test, "~> 0.7", only: :test, runtime: false, override: true},
       {:live_debugger, "~> 0.3", only: [:dev]},
       {:phoenix_storybook, "~> 0.8"},
       {:lazy_html, ">= 0.1.0", only: :test},

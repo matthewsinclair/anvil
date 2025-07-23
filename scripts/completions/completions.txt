@@ -1,4 +1,24 @@
-# Anvil CLI completions
+about
+cfg
+cfg.dump
+cfg.get
+cfg.help
+cfg.list
+cfg.paths
+cfg.validate
+cli.debug
+cli.error
+cli.history
+cli.redo
+cli.script
+cli.status
+dev.deps
+dev.info
+settings.all
+settings.get
+sys.cmd
+sys.flush
+sys.info
 help
 exit
 quit
