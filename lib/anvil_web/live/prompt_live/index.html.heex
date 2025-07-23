@@ -1,0 +1,110 @@
+<div class="space-y-6">
+  <!-- Header Card -->
+  <div class="bg-base-100 border-2 border-primary p-6">
+    <div class="flex items-start justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-primary uppercase tracking-wider font-mono">
+          >> Prompts
+        </h1>
+        <p class="text-sm text-base-content/60 font-mono mt-1">
+          {@prompt_set.name} · v{@prompt_set.version}
+        </p>
+      </div>
+      <.link
+        navigate={~p"/projects/#{@project}/prompt-sets/#{@prompt_set}/prompts/new"}
+        class="btn btn-primary font-mono uppercase"
+      >
+        {retro_icon(:add)} New Prompt
+      </.link>
+    </div>
+  </div>
+  
+<!-- Prompts List -->
+  <div class="bg-base-100 border-2 border-base-300">
+    <div :if={@has_prompts} id="prompts" phx-update="stream" class="divide-y-2 divide-base-300">
+      <div
+        :for={{id, prompt} <- @streams.prompts}
+        id={id}
+        class="p-6 hover:bg-base-200 transition-colors group"
+      >
+        <div class="flex items-start justify-between">
+          <div class="flex-1">
+            <.link
+              navigate={~p"/projects/#{@project}/prompt-sets/#{@prompt_set}/prompts/#{prompt}"}
+              class="text-xl font-bold font-mono text-primary hover:underline"
+            >
+              {prompt.name}
+            </.link>
+            <p class="text-sm text-base-content/60 font-mono mt-1">
+              /{prompt.slug}
+            </p>
+            
+<!-- Template Preview -->
+            <div class="mt-3 p-3 bg-base-300 rounded border border-base-content/10">
+              <pre class="text-xs font-mono text-base-content/80 whitespace-pre-wrap">{String.slice(prompt.template, 0, 200)}<span :if={String.length(prompt.template) > 200}>...</span></pre>
+            </div>
+            
+<!-- Parameters -->
+            <div :if={prompt.parameters && length(prompt.parameters) > 0} class="mt-3 flex gap-2">
+              <span class="text-xs font-mono text-base-content/60">Parameters:</span>
+              <div class="flex gap-2">
+                <%= for param <- prompt.parameters do %>
+                  <span class="badge badge-ghost badge-sm font-mono">
+                    {Map.get(param, "name") || Map.get(param, :name)}
+                  </span>
+                <% end %>
+              </div>
+            </div>
+          </div>
+          
+<!-- Actions -->
+          <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <.link
+              navigate={
+                ~p"/projects/#{@project}/prompt-sets/#{@prompt_set}/prompts/#{prompt}/edit"
+              }
+              class="btn btn-ghost btn-xs font-mono uppercase"
+            >
+              Edit
+            </.link>
+            <button
+              phx-click="delete"
+              phx-value-id={prompt.id}
+              data-confirm="Are you sure you want to delete this prompt?"
+              class="btn btn-ghost btn-xs font-mono uppercase text-error"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+<!-- Empty State -->
+    <div :if={!@has_prompts} class="p-12 text-center">
+      <div class="max-w-md mx-auto">
+        <span class="text-6xl">📝</span>
+        <h3 class="mt-4 text-lg font-bold font-mono uppercase">No Prompts Yet</h3>
+        <p class="mt-2 text-sm text-base-content/60 font-mono">
+          Create your first prompt to get started with this prompt set.
+        </p>
+        <.link
+          navigate={~p"/projects/#{@project}/prompt-sets/#{@prompt_set}/prompts/new"}
+          class="btn btn-primary btn-sm font-mono uppercase mt-4"
+        >
+          {retro_icon(:add)} Create First Prompt
+        </.link>
+      </div>
+    </div>
+  </div>
+  
+<!-- Back Link -->
+  <div class="flex justify-center">
+    <.link
+      navigate={~p"/projects/#{@project}/prompt-sets/#{@prompt_set}"}
+      class="text-sm text-base-content/60 hover:text-primary font-mono"
+    >
+      {retro_icon(:back)} Back to Prompt Set
+    </.link>
+  </div>
+</div>

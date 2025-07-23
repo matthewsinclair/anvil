@@ -19,16 +19,7 @@ defmodule Anvil.Prompts.Prompt do
     create :create do
       accept [:name, :template, :parameters, :metadata, :prompt_set_id]
 
-      change fn changeset, _ ->
-        case Ash.Changeset.get_attribute(changeset, :name) do
-          nil ->
-            changeset
-
-          name ->
-            slug = name |> String.downcase() |> String.replace(" ", "-")
-            Ash.Changeset.change_attribute(changeset, :slug, slug)
-        end
-      end
+      change Anvil.Prompts.Changes.GenerateSlug
     end
 
     update :update do
@@ -47,7 +38,7 @@ defmodule Anvil.Prompts.Prompt do
     attribute :name, :string, allow_nil?: false
     attribute :slug, :string, allow_nil?: false
     attribute :template, :string, allow_nil?: false
-    attribute :parameters, {:array, :map}, default: []
+    attribute :parameters, Anvil.Types.ParameterList, default: []
     attribute :metadata, :map, default: %{}
     create_timestamp :created_at
     update_timestamp :updated_at

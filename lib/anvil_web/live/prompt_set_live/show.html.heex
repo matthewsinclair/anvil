@@ -27,8 +27,11 @@
       </div>
 
       <div class="flex gap-2">
-        <.link href="#" class="btn btn-primary btn-sm font-mono uppercase">
-          {retro_icon(:add)} Add Prompt
+        <.link
+          navigate={~p"/projects/#{@project}/prompt-sets/#{@prompt_set}/prompts"}
+          class="btn btn-primary btn-sm font-mono uppercase"
+        >
+          {retro_icon(:view)} View Prompts
         </.link>
         <.link
           navigate={~p"/projects/#{@project}/prompt-sets/#{@prompt_set}/edit"}
@@ -82,7 +85,10 @@
       <h2 class="text-lg font-bold uppercase tracking-wider font-mono text-primary">
         {retro_icon(:prompt)} Prompts
       </h2>
-      <.link href="#" class="btn btn-primary btn-xs font-mono uppercase">
+      <.link
+        navigate={~p"/projects/#{@project}/prompt-sets/#{@prompt_set}/prompts/new"}
+        class="btn btn-primary btn-xs font-mono uppercase"
+      >
         {retro_icon(:add)} Add
       </.link>
     </div>
@@ -92,7 +98,10 @@
         :for={prompt <- @prompt_set.prompts || []}
         class="p-4 hover:bg-base-200 transition-colors"
       >
-        <.link href="#" class="block">
+        <.link
+          navigate={~p"/projects/#{@project}/prompt-sets/#{@prompt_set}/prompts/#{prompt}"}
+          class="block"
+        >
           <div class="flex items-center justify-between">
             <div class="flex-1">
               <h3 class="font-mono font-bold text-primary">
@@ -118,7 +127,10 @@
         <p class="text-base-content/60 font-mono mb-4">
           No prompts yet
         </p>
-        <.link href="#" class="btn btn-primary btn-sm font-mono uppercase">
+        <.link
+          navigate={~p"/projects/#{@project}/prompt-sets/#{@prompt_set}/prompts/new"}
+          class="btn btn-primary btn-sm font-mono uppercase"
+        >
           {retro_icon(:add)} Create First Prompt
         </.link>
       </div>

@@ -1,0 +1,170 @@
+<div class="max-w-4xl">
+  <!-- Page Header -->
+  <div class="mb-8">
+    <.link
+      navigate={~p"/projects/#{@project}/prompt-sets/#{@prompt_set}/prompts/#{@prompt}"}
+      class="text-sm text-base-content/60 hover:text-primary font-mono mb-2 inline-block"
+    >
+      {retro_icon(:back)} Back to Prompt
+    </.link>
+    <h1 class="text-3xl font-bold text-primary uppercase tracking-wider font-mono">
+      {retro_icon(:edit)} Edit Prompt
+    </h1>
+    <p class="text-sm text-base-content/60 font-mono mt-2">
+      Editing {@prompt.name}
+    </p>
+  </div>
+  
+<!-- Form Card -->
+  <div class="bg-base-100 border-2 border-primary p-8">
+    <.form for={@form} id="prompt-form" phx-change="validate" phx-submit="save">
+      <div class="space-y-6">
+        <!-- Name -->
+        <div>
+          <label class="label">
+            <span class="label-text font-mono uppercase text-primary">Name</span>
+          </label>
+          <.input
+            field={@form[:name]}
+            type="text"
+            placeholder="User Welcome Message"
+            class="input input-bordered input-primary w-full font-mono"
+            phx-debounce="blur"
+          />
+        </div>
+        
+<!-- Template -->
+        <div>
+          <label class="label">
+            <span class="label-text font-mono uppercase text-primary">Template</span>
+            <span class="label-text-alt text-base-content/60 font-mono">
+              Use {"{{ parameter }}"} for variables
+            </span>
+          </label>
+          <textarea
+            id={@form[:template].id}
+            name={@form[:template].name}
+            placeholder="Hello {{ user_name }}! Welcome to our platform..."
+            class="textarea textarea-bordered textarea-primary w-full font-mono h-48"
+            phx-debounce="blur"
+          >{Phoenix.HTML.Form.input_value(@form, :template)}</textarea>
+        </div>
+        
+<!-- Parameters -->
+        <div>
+          <label class="label">
+            <span class="label-text font-mono uppercase text-primary">Parameters</span>
+            <button type="button" phx-click="add_parameter" class="btn btn-ghost btn-xs font-mono">
+              {retro_icon(:add)} Add
+            </button>
+          </label>
+
+          <div class="space-y-2" id="parameters-list">
+            <%= for {param, index} <- Enum.with_index(@parameters) do %>
+              <div
+                class="flex items-center gap-2 p-3 bg-base-200 rounded"
+                id={"parameter-#{index}"}
+              >
+                <input
+                  type="hidden"
+                  name={"form[parameters][#{index}][name]"}
+                  value={Map.get(param, "name", "")}
+                />
+                <input
+                  type="hidden"
+                  name={"form[parameters][#{index}][type]"}
+                  value={Map.get(param, "type", "string")}
+                />
+                <input
+                  type="hidden"
+                  name={"form[parameters][#{index}][required]"}
+                  value={to_string(Map.get(param, "required", false))}
+                />
+
+                <input
+                  type="text"
+                  value={Map.get(param, "name", "")}
+                  placeholder="Parameter name"
+                  class="input input-sm input-bordered font-mono flex-1"
+                  phx-blur="update_parameter"
+                  phx-value-index={index}
+                  phx-value-field="name"
+                />
+                <select
+                  value={Map.get(param, "type", "string")}
+                  class="select select-sm select-bordered font-mono"
+                  phx-change="update_parameter"
+                  phx-value-index={index}
+                  phx-value-field="type"
+                >
+                  <option value="string">String</option>
+                  <option value="number">Number</option>
+                  <option value="boolean">Boolean</option>
+                </select>
+                <label class="label cursor-pointer gap-2">
+                  <span class="label-text font-mono text-sm">Required</span>
+                  <input
+                    type="checkbox"
+                    checked={Map.get(param, "required", false)}
+                    class="checkbox checkbox-sm checkbox-primary"
+                    phx-click="update_parameter"
+                    phx-value-index={index}
+                    phx-value-field="required"
+                    phx-value-checked={!Map.get(param, "required", false)}
+                  />
+                </label>
+                <button
+                  type="button"
+                  phx-click="remove_parameter"
+                  phx-value-index={index}
+                  class="btn btn-ghost btn-xs text-error"
+                >
+                  {retro_icon(:remove)}
+                </button>
+              </div>
+            <% end %>
+
+            <div
+              :if={@parameters == []}
+              class="text-sm text-base-content/60 font-mono text-center py-4"
+            >
+              No parameters defined. Add parameters that can be used in your template.
+            </div>
+          </div>
+        </div>
+        
+<!-- Metadata (Optional) -->
+        <div>
+          <label class="label">
+            <span class="label-text font-mono uppercase text-primary">Metadata</span>
+            <span class="label-text-alt text-base-content/60 font-mono">(Optional JSON)</span>
+          </label>
+          <textarea
+            id={@form[:metadata].id}
+            name={@form[:metadata].name}
+            placeholder='{"category": "greetings", "tone": "friendly"}'
+            class="textarea textarea-bordered textarea-primary w-full font-mono h-24"
+            phx-debounce="blur"
+          >{Phoenix.HTML.Form.input_value(@form, :metadata) |> Jason.encode!(pretty: true)}</textarea>
+        </div>
+        
+<!-- Form Actions -->
+        <div class="flex items-center justify-between pt-6 border-t-2 border-base-300">
+          <.link
+            navigate={~p"/projects/#{@project}/prompt-sets/#{@prompt_set}/prompts/#{@prompt}"}
+            class="btn btn-ghost font-mono uppercase"
+          >
+            Cancel
+          </.link>
+          <.button
+            type="submit"
+            phx-disable-with="Saving..."
+            class="btn btn-primary font-mono uppercase"
+          >
+            Save Changes
+          </.button>
+        </div>
+      </div>
+    </.form>
+  </div>
+</div>

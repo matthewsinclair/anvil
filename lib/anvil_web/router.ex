@@ -72,6 +72,15 @@ defmodule AnvilWeb.Router do
       live "/projects/:project_id/prompt-sets/new", PromptSetLive.New, :new
       live "/projects/:project_id/prompt-sets/:id", PromptSetLive.Show, :show
       live "/projects/:project_id/prompt-sets/:id/edit", PromptSetLive.Edit, :edit
+
+      # Prompt routes
+      live "/projects/:project_id/prompt-sets/:prompt_set_id/prompts", PromptLive.Index, :index
+      live "/projects/:project_id/prompt-sets/:prompt_set_id/prompts/new", PromptLive.New, :new
+      live "/projects/:project_id/prompt-sets/:prompt_set_id/prompts/:id", PromptLive.Show, :show
+
+      live "/projects/:project_id/prompt-sets/:prompt_set_id/prompts/:id/edit",
+           PromptLive.Edit,
+           :edit
     end
   end
 

@@ -1,0 +1,108 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="bg-base-100 border-2 border-primary p-6">
+    <div class="flex items-start justify-between">
+      <div class="flex-1">
+        <h1 class="text-3xl font-bold text-primary uppercase tracking-wider font-mono">
+          {@prompt.name}
+        </h1>
+        <p class="text-sm text-base-content/60 font-mono mt-1">
+          /{@prompt.slug} · {@prompt_set.name} v{@prompt_set.version}
+        </p>
+        <div class="flex gap-2 mt-3">
+          <span class="badge badge-sm badge-ghost font-mono uppercase">
+            Created {format_date(@prompt.created_at)}
+          </span>
+          <span
+            :if={@prompt.updated_at != @prompt.created_at}
+            class="badge badge-sm badge-ghost font-mono uppercase"
+          >
+            Updated {format_date(@prompt.updated_at)}
+          </span>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <.link
+          navigate={~p"/projects/#{@project}/prompt-sets/#{@prompt_set}/prompts/#{@prompt}/edit"}
+          class="btn btn-outline btn-sm font-mono uppercase"
+        >
+          Edit
+        </.link>
+      </div>
+    </div>
+  </div>
+  
+<!-- Template -->
+  <div class="bg-base-100 border-2 border-base-300">
+    <div class="p-4 border-b-2 border-base-300 flex items-center justify-between">
+      <h2 class="text-lg font-bold uppercase tracking-wider font-mono text-primary">
+        {retro_icon(:code)} Template
+      </h2>
+    </div>
+    <div class="p-6">
+      <pre class="font-mono text-sm text-base-content bg-base-200 p-4 rounded overflow-x-auto whitespace-pre-wrap">{@prompt.template}</pre>
+    </div>
+  </div>
+  
+<!-- Parameters -->
+  <div
+    :if={@prompt.parameters && length(@prompt.parameters) > 0}
+    class="bg-base-100 border-2 border-base-300"
+  >
+    <div class="p-4 border-b-2 border-base-300">
+      <h2 class="text-lg font-bold uppercase tracking-wider font-mono text-primary">
+        {retro_icon(:settings)} Parameters
+      </h2>
+    </div>
+    <div class="divide-y-2 divide-base-300">
+      <%= for param <- @prompt.parameters do %>
+        <div class="p-4 flex items-center justify-between">
+          <div>
+            <code class="font-mono font-bold">
+              {Map.get(param, "name") || Map.get(param, :name)}
+            </code>
+            <div class="flex gap-2 mt-1">
+              <span class="badge badge-ghost badge-sm font-mono">
+                {Map.get(param, "type") || Map.get(param, :type) || "string"}
+              </span>
+              <span
+                :if={Map.get(param, "required") || Map.get(param, :required)}
+                class="badge badge-primary badge-sm font-mono"
+              >
+                Required
+              </span>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+  
+<!-- Metadata -->
+  <div
+    :if={@prompt.metadata && map_size(@prompt.metadata) > 0}
+    class="bg-base-100 border-2 border-base-300 p-4"
+  >
+    <h3 class="text-sm font-bold uppercase tracking-wider font-mono text-primary mb-2">
+      Metadata
+    </h3>
+    <pre class="text-xs font-mono text-base-content/80 overflow-x-auto">{Jason.encode!(@prompt.metadata, pretty: true)}</pre>
+  </div>
+  
+<!-- Actions -->
+  <div class="flex justify-center gap-4">
+    <.link
+      navigate={~p"/projects/#{@project}/prompt-sets/#{@prompt_set}/prompts"}
+      class="text-sm text-base-content/60 hover:text-primary font-mono"
+    >
+      {retro_icon(:back)} Back to Prompts
+    </.link>
+    <.link
+      navigate={~p"/projects/#{@project}/prompt-sets/#{@prompt_set}"}
+      class="text-sm text-base-content/60 hover:text-primary font-mono"
+    >
+      {retro_icon(:back)} Back to Prompt Set
+    </.link>
+  </div>
+</div>
