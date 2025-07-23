@@ -15,8 +15,11 @@
       </div>
 
       <div class="flex gap-2">
-        <.link href="#" class="btn btn-primary btn-sm font-mono uppercase">
-          View Prompts →
+        <.link
+          navigate={~p"/projects/#{@project}/prompt-sets"}
+          class="btn btn-primary btn-sm font-mono uppercase"
+        >
+          View Prompts {retro_icon(:view)}
         </.link>
         <.link
           navigate={~p"/projects/#{@project}/edit"}
@@ -71,7 +74,7 @@
         :for={prompt_set <- recent_prompt_sets(@project)}
         class="p-4 hover:bg-base-200 transition-colors"
       >
-        <.link href="#" class="block">
+        <.link navigate={~p"/projects/#{@project}/prompt-sets/#{prompt_set}"} class="block">
           <div class="flex items-center justify-between">
             <div>
               <h3 class="font-mono font-bold text-primary">
@@ -97,7 +100,10 @@
         <p class="text-base-content/60 font-mono mb-4">
           No prompt sets yet
         </p>
-        <.link href="#" class="btn btn-primary btn-sm font-mono uppercase">
+        <.link
+          navigate={~p"/projects/#{@project}/prompt-sets/new"}
+          class="btn btn-primary btn-sm font-mono uppercase"
+        >
           + Create First Prompt Set
         </.link>
       </div>

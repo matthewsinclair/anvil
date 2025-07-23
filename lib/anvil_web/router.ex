@@ -72,11 +72,11 @@ defmodule AnvilWeb.Router do
       live "/projects/:id", ProjectLive.Show, :show
       live "/projects/:id/edit", ProjectLive.Edit, :edit
 
-      # TODO: Add prompt set routes when PromptSetLive modules are created
-      # live "/projects/:project_id/prompts", PromptSetLive.Index, :index
-      # live "/projects/:project_id/prompts/new", PromptSetLive.Index, :new
-      # live "/projects/:project_id/prompts/:id", PromptSetLive.Show, :show
-      # live "/projects/:project_id/prompts/:id/edit", PromptSetLive.Index, :edit
+      # Prompt set routes
+      live "/projects/:project_id/prompt-sets", PromptSetLive.Index, :index
+      live "/projects/:project_id/prompt-sets/new", PromptSetLive.New, :new
+      live "/projects/:project_id/prompt-sets/:id", PromptSetLive.Show, :show
+      live "/projects/:project_id/prompt-sets/:id/edit", PromptSetLive.Edit, :edit
     end
   end
 

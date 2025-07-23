@@ -25,7 +25,12 @@ defmodule AnvilWeb.ProjectLive.Edit do
      socket
      |> assign(:page_title, "Edit #{project.name}")
      |> assign(:project, project)
-     |> assign(:form, form)}
+     |> assign(:form, form)
+     |> assign(:breadcrumb_items, [
+       %{label: "Projects", href: ~p"/projects"},
+       %{label: project.name, href: ~p"/projects/#{project}"},
+       %{label: "Edit", current: true}
+     ])}
   end
 
   @impl true

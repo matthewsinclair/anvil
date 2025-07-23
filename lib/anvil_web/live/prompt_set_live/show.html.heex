@@ -1,0 +1,138 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="bg-base-100 border-2 border-primary p-6">
+    <div class="flex items-start justify-between">
+      <div class="flex-1">
+        <h1 class="text-3xl font-bold text-primary uppercase tracking-wider font-mono">
+          {@prompt_set.name}
+        </h1>
+        <p class="text-sm text-base-content/60 font-mono mt-1">
+          v{@prompt_set.version} · @{@project.repository}
+        </p>
+
+        <div class="flex gap-2 mt-3">
+          <span class={[
+            "badge badge-sm font-mono uppercase",
+            badge_class_for_edit_mode(@prompt_set.edit_mode)
+          ]}>
+            {@prompt_set.edit_mode}
+          </span>
+          <span
+            :if={@prompt_set.published_at}
+            class="badge badge-sm badge-success font-mono uppercase"
+          >
+            Published {format_date(@prompt_set.published_at)}
+          </span>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <.link href="#" class="btn btn-primary btn-sm font-mono uppercase">
+          {retro_icon(:add)} Add Prompt
+        </.link>
+        <.link
+          navigate={~p"/projects/#{@project}/prompt-sets/#{@prompt_set}/edit"}
+          class="btn btn-outline btn-sm font-mono uppercase"
+        >
+          Edit
+        </.link>
+        <button
+          :if={@prompt_set.edit_mode != :locked && !@prompt_set.published_at}
+          class="btn btn-secondary btn-sm font-mono uppercase"
+        >
+          Publish
+        </button>
+      </div>
+    </div>
+  </div>
+  
+<!-- Stats -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="bg-base-100 border-2 border-base-300 p-4 text-center">
+      <div class="text-2xl font-bold text-primary font-mono">
+        {count_prompts(@prompt_set)}
+      </div>
+      <div class="text-xs text-base-content/60 uppercase font-mono mt-1">
+        Prompts
+      </div>
+    </div>
+
+    <div class="bg-base-100 border-2 border-base-300 p-4 text-center">
+      <div class="text-2xl font-bold text-secondary font-mono">
+        {count_versions(@prompt_set)}
+      </div>
+      <div class="text-xs text-base-content/60 uppercase font-mono mt-1">
+        Versions
+      </div>
+    </div>
+
+    <div class="bg-base-100 border-2 border-base-300 p-4 text-center">
+      <div class="text-2xl font-bold text-accent font-mono">
+        {length(@prompt_set.dependencies || [])}
+      </div>
+      <div class="text-xs text-base-content/60 uppercase font-mono mt-1">
+        Dependencies
+      </div>
+    </div>
+  </div>
+  
+<!-- Prompts List -->
+  <div class="bg-base-100 border-2 border-base-300">
+    <div class="p-4 border-b-2 border-base-300 flex items-center justify-between">
+      <h2 class="text-lg font-bold uppercase tracking-wider font-mono text-primary">
+        {retro_icon(:prompt)} Prompts
+      </h2>
+      <.link href="#" class="btn btn-primary btn-xs font-mono uppercase">
+        {retro_icon(:add)} Add
+      </.link>
+    </div>
+
+    <div class="divide-y-2 divide-base-300">
+      <div
+        :for={prompt <- @prompt_set.prompts || []}
+        class="p-4 hover:bg-base-200 transition-colors"
+      >
+        <.link href="#" class="block">
+          <div class="flex items-center justify-between">
+            <div class="flex-1">
+              <h3 class="font-mono font-bold text-primary">
+                {prompt.name}
+              </h3>
+              <p class="text-xs text-base-content/60 font-mono mt-1">
+                {String.slice(prompt.template, 0, 100)}<span :if={
+                  String.length(prompt.template) > 100
+                }>...</span>
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="badge badge-ghost badge-sm font-mono">
+                {length(prompt.parameters || [])} params
+              </span>
+              <button class="btn btn-ghost btn-xs">{retro_icon(:menu)}</button>
+            </div>
+          </div>
+        </.link>
+      </div>
+
+      <div :if={Enum.empty?(@prompt_set.prompts || [])} class="p-8 text-center">
+        <p class="text-base-content/60 font-mono mb-4">
+          No prompts yet
+        </p>
+        <.link href="#" class="btn btn-primary btn-sm font-mono uppercase">
+          {retro_icon(:add)} Create First Prompt
+        </.link>
+      </div>
+    </div>
+  </div>
+  
+<!-- Metadata -->
+  <div
+    :if={@prompt_set.metadata && map_size(@prompt_set.metadata) > 0}
+    class="bg-base-100 border-2 border-base-300 p-4"
+  >
+    <h3 class="text-sm font-bold uppercase tracking-wider font-mono text-primary mb-2">
+      Metadata
+    </h3>
+    <pre class="text-xs font-mono text-base-content/80 overflow-x-auto">{Jason.encode!(@prompt_set.metadata, pretty: true)}</pre>
+  </div>
+</div>

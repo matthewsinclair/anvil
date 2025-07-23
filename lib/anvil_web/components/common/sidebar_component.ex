@@ -18,16 +18,16 @@ defmodule AnvilWeb.Components.Common.SidebarComponent do
     ~H"""
     <div class="drawer-side">
       <label for="drawer-toggle" class="drawer-overlay"></label>
-      <aside class="min-h-full w-64 bg-base-100 border-r-2 border-primary flex flex-col">
-        <!-- Company Branding -->
-        <div class="p-6 border-b-2 border-primary">
+      <aside class="min-h-full w-64 bg-base-100 flex flex-col">
+        <!-- Company Branding - matches header height -->
+        <div class="flex items-center px-6 h-16 border-b-2 border-primary">
           <.link navigate={~p"/"} class="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div class="w-10 h-10 flex-shrink-0">
+            <div class="w-8 h-8 flex-shrink-0">
               <img src={~p"/images/anvil_logo.svg"} alt="Anvil" class="w-full h-full pixelated" />
             </div>
             <div>
-              <h1 class="text-xl font-bold uppercase tracking-wider text-primary">Anvil</h1>
-              <p class="text-xs text-base-content/60 font-mono">Context Engineering</p>
+              <h1 class="text-lg font-bold uppercase tracking-wider text-primary">Anvil</h1>
+              <p class="text-[10px] text-base-content/60 font-mono -mt-1">Context Engineering</p>
             </div>
           </.link>
         </div>
@@ -36,29 +36,44 @@ defmodule AnvilWeb.Components.Common.SidebarComponent do
         <nav class="p-4 flex-1 overflow-y-auto">
           <ul class="menu menu-vertical w-full space-y-1">
             <li>
-              <.nav_item href={~p"/app"} current_path={@current_path} icon="▶" label="Dashboard" />
+              <.nav_item
+                href={~p"/app"}
+                current_path={@current_path}
+                icon={retro_icon(:dashboard)}
+                label="Dashboard"
+              />
             </li>
             <li>
               <.nav_item
                 href={~p"/projects"}
                 current_path={@current_path}
-                icon="▪"
+                icon={retro_icon(:project)}
                 label="Projects"
               />
             </li>
             <li>
-              <.nav_item href={~p"/account"} current_path={@current_path} icon="◆" label="Account" />
+              <.nav_item
+                href={~p"/account"}
+                current_path={@current_path}
+                icon={retro_icon(:account)}
+                label="Account"
+              />
             </li>
             <li>
               <.nav_item
                 href={~p"/settings"}
                 current_path={@current_path}
-                icon="⚙"
+                icon={retro_icon(:settings)}
                 label="Settings"
               />
             </li>
             <li>
-              <.nav_item href={~p"/help"} current_path={@current_path} icon="?" label="Help" />
+              <.nav_item
+                href={~p"/help"}
+                current_path={@current_path}
+                icon={retro_icon(:help)}
+                label="Help"
+              />
             </li>
           </ul>
           
@@ -75,7 +90,7 @@ defmodule AnvilWeb.Components.Common.SidebarComponent do
                 method="get"
                 class="flex items-center gap-3 px-3 py-2.5 text-base-content/70 hover:bg-error/20 hover:text-error transition-colors font-mono uppercase tracking-wider"
               >
-                <span class="text-lg">⬅</span>
+                <span class="text-lg">{retro_icon(:logout)}</span>
                 <span class="text-sm font-medium">Logout</span>
               </.link>
             </li>

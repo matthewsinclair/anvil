@@ -13,7 +13,11 @@ defmodule AnvilWeb.ProjectLive.New do
      socket
      |> assign(:page_title, "New Project")
      |> assign(:current_path, "/projects/new")
-     |> assign(:form, form), layout: {AnvilWeb.Layouts, :dashboard}}
+     |> assign(:form, form)
+     |> assign(:breadcrumb_items, [
+       %{label: "Projects", href: ~p"/projects"},
+       %{label: "New", current: true}
+     ]), layout: {AnvilWeb.Layouts, :dashboard}}
   end
 
   @impl true

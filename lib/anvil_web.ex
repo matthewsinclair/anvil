@@ -88,6 +88,7 @@ defmodule AnvilWeb do
       import Phoenix.HTML
       # Core UI components
       import AnvilWeb.CoreComponents
+      import AnvilWeb.ViewHelpers
 
       # Common modules used in templates
       alias Phoenix.LiveView.JS

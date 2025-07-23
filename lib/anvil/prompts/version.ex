@@ -7,12 +7,10 @@ defmodule Anvil.Prompts.Version do
   postgres do
     table "prompt_set_versions"
     repo Anvil.Repo
-  end
 
-  code_interface do
-    define :create, args: [:version_number, :snapshot, :prompt_set_id]
-    define :read_all, action: :read
-    define :by_id, get_by: [:id], action: :read
+    references do
+      reference :prompt_set, on_delete: :restrict
+    end
   end
 
   actions do

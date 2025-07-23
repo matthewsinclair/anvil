@@ -23,7 +23,11 @@ defmodule AnvilWeb.ProjectLive.Show do
     {:noreply,
      socket
      |> assign(:page_title, project.name)
-     |> assign(:project, project)}
+     |> assign(:project, project)
+     |> assign(:breadcrumb_items, [
+       %{label: "Projects", href: ~p"/projects"},
+       %{label: project.name, current: true}
+     ])}
   end
 
   # Helper functions for the template
@@ -42,13 +46,4 @@ defmodule AnvilWeb.ProjectLive.Show do
     |> Enum.sort_by(& &1.created_at, {:desc, DateTime})
     |> Enum.take(5)
   end
-
-  defp format_date(datetime) do
-    Calendar.strftime(datetime, "%b %d, %Y")
-  end
-
-  defp badge_class_for_edit_mode(:live), do: "badge-success"
-  defp badge_class_for_edit_mode(:review), do: "badge-warning"
-  defp badge_class_for_edit_mode(:locked), do: "badge-error"
-  defp badge_class_for_edit_mode(_), do: "badge-ghost"
 end

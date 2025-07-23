@@ -1,0 +1,106 @@
+<div class="max-w-4xl">
+  <!-- Page Header -->
+  <div class="mb-8">
+    <.link
+      navigate={~p"/projects/#{@project}/prompt-sets"}
+      class="text-sm text-base-content/60 hover:text-primary font-mono mb-2 inline-block"
+    >
+      {retro_icon(:back)} Back to Prompt Sets
+    </.link>
+    <h1 class="text-3xl font-bold text-primary uppercase tracking-wider font-mono">
+      {retro_icon(:prompt)} New Prompt Set
+    </h1>
+    <p class="text-base-content/60 font-mono mt-2">
+      Create a new prompt set for @{@project.repository}
+    </p>
+  </div>
+  
+<!-- Form Card -->
+  <div class="bg-base-100 border-2 border-primary p-8">
+    <.form for={@form} id="prompt-set-form" phx-change="validate" phx-submit="save">
+      <div class="space-y-6">
+        <!-- Name -->
+        <div>
+          <label class="label">
+            <span class="label-text font-mono uppercase text-primary">Name</span>
+          </label>
+          <.input
+            field={@form[:name]}
+            type="text"
+            placeholder="Welcome Messages"
+            class="input input-bordered input-primary w-full font-mono"
+            phx-debounce="blur"
+          />
+        </div>
+        
+<!-- Version -->
+        <div>
+          <label class="label">
+            <span class="label-text font-mono uppercase text-primary">Version</span>
+          </label>
+          <.input
+            field={@form[:version]}
+            type="text"
+            placeholder="1.0.0"
+            class="input input-bordered input-primary w-full font-mono"
+            phx-debounce="blur"
+          />
+          <label class="label">
+            <span class="label-text-alt text-base-content/60 font-mono">
+              Use semantic versioning (e.g., 1.0.0, 2.1.3)
+            </span>
+          </label>
+        </div>
+        
+<!-- Edit Mode -->
+        <div>
+          <label class="label">
+            <span class="label-text font-mono uppercase text-primary">Edit Mode</span>
+          </label>
+          <.input
+            field={@form[:edit_mode]}
+            type="select"
+            options={[
+              {"Live - Editable by users", :live},
+              {"Review - Changes require approval", :review},
+              {"Locked - No changes allowed", :locked}
+            ]}
+            class="select select-bordered select-primary w-full font-mono"
+          />
+        </div>
+        
+<!-- Metadata (Optional) -->
+        <div>
+          <label class="label">
+            <span class="label-text font-mono uppercase text-primary">Metadata</span>
+            <span class="label-text-alt text-base-content/60 font-mono">(Optional JSON)</span>
+          </label>
+          <textarea
+            id={@form[:metadata].id}
+            name={@form[:metadata].name}
+            placeholder='{"category": "onboarding", "audience": "new_users"}'
+            class="textarea textarea-bordered textarea-primary w-full font-mono h-24"
+            phx-debounce="blur"
+          >{@metadata_string}</textarea>
+        </div>
+        
+<!-- Form Actions -->
+        <div class="flex items-center justify-between pt-6 border-t-2 border-base-300">
+          <.link
+            navigate={~p"/projects/#{@project}/prompt-sets"}
+            class="btn btn-ghost font-mono uppercase"
+          >
+            Cancel
+          </.link>
+          <.button
+            type="submit"
+            phx-disable-with="Creating..."
+            class="btn btn-primary font-mono uppercase"
+          >
+            Create Prompt Set
+          </.button>
+        </div>
+      </div>
+    </.form>
+  </div>
+</div>

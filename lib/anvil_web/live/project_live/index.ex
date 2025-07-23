@@ -25,19 +25,44 @@ defmodule AnvilWeb.ProjectLive.Index do
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     project = Projects.get_by_id!(id, actor: socket.assigns.current_user)
-    {:ok, _} = Projects.destroy(project, actor: socket.assigns.current_user)
 
-    # Check if we still have projects after deletion
-    remaining_projects = list_projects(socket)
+    case Projects.destroy(project, actor: socket.assigns.current_user) do
+      :ok ->
+        # Check if we still have projects after deletion
+        remaining_projects = list_projects(socket)
 
-    {:noreply,
-     socket
-     |> put_flash(:info, "Project deleted successfully")
-     |> assign(:has_projects, remaining_projects != [])
-     |> stream_delete(:projects, project)}
+        {:noreply,
+         socket
+         |> put_flash(:info, "Project deleted successfully")
+         |> assign(:has_projects, remaining_projects != [])
+         |> stream_delete(:projects, project)}
+
+      {:error, %Ash.Error.Invalid{} = error} ->
+        # Check if it's a foreign key constraint error
+        foreign_key_error =
+          Enum.find(error.errors, fn
+            %Ash.Error.Changes.InvalidAttribute{private_vars: private_vars} ->
+              Keyword.get(private_vars, :constraint_type) == :foreign_key
+
+            _ ->
+              false
+          end)
+
+        message =
+          if foreign_key_error do
+            "Cannot delete project with existing prompt sets"
+          else
+            "Failed to delete project"
+          end
+
+        {:noreply, put_flash(socket, :error, message)}
+
+      {:error, _error} ->
+        {:noreply, put_flash(socket, :error, "Failed to delete project")}
+    end
   end
 
   defp list_projects(socket) do
-    Projects.read_all!(actor: socket.assigns.current_user)
+    Projects.read_all!(actor: socket.assigns.current_user, load: [:prompt_sets])
   end
 end

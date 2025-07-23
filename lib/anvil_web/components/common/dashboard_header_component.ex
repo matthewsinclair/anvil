@@ -27,16 +27,24 @@ defmodule AnvilWeb.Components.Common.DashboardHeaderComponent do
         </label>
       </div>
       
-    <!-- Page Title -->
+    <!-- Left side spacer for desktop -->
       <div class="navbar-start hidden lg:flex">
-        <h1 class="text-xl font-bold uppercase tracking-wider text-primary font-mono">
-          {@title}
-        </h1>
+        <!-- Spacer to balance the layout -->
       </div>
       
-    <!-- Center - could add search here later -->
-      <div class="navbar-center hidden md:flex">
-        <!-- Reserved for future search functionality -->
+    <!-- Center - Command/Search box -->
+      <div class="navbar-center">
+        <div class="form-control">
+          <div class="flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Type to search or run commands..."
+              class="input input-bordered input-primary input-sm w-64 lg:w-96 font-mono bg-base-200 border-base-content/20 placeholder-base-content/40"
+              disabled
+            />
+            <kbd class="kbd kbd-sm">⌘</kbd>
+          </div>
+        </div>
       </div>
       
     <!-- Right side - User Menu -->

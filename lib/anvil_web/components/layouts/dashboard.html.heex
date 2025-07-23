@@ -11,6 +11,11 @@
     
 <!-- Main Content Area -->
     <main class="flex-1 p-4 sm:p-6 lg:p-8">
+      <!-- Breadcrumb -->
+      <%= if assigns[:breadcrumb_items] && @breadcrumb_items != [] do %>
+        <AnvilWeb.Components.Common.BreadcrumbComponent.breadcrumb items={@breadcrumb_items} />
+      <% end %>
+
       <.flash_group flash={@flash} />
       {@inner_content}
     </main>

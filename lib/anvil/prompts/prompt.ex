@@ -7,14 +7,10 @@ defmodule Anvil.Prompts.Prompt do
   postgres do
     table "prompts"
     repo Anvil.Repo
-  end
 
-  code_interface do
-    define :create, args: [:name, :template, :prompt_set_id]
-    define :read_all, action: :read
-    define :by_id, get_by: [:id], action: :read
-    define :update
-    define :destroy
+    references do
+      reference :prompt_set, on_delete: :restrict
+    end
   end
 
   actions do
@@ -24,9 +20,14 @@ defmodule Anvil.Prompts.Prompt do
       accept [:name, :template, :parameters, :metadata, :prompt_set_id]
 
       change fn changeset, _ ->
-        name = Ash.Changeset.get_attribute(changeset, :name)
-        slug = name |> String.downcase() |> String.replace(" ", "-")
-        Ash.Changeset.change_attribute(changeset, :slug, slug)
+        case Ash.Changeset.get_attribute(changeset, :name) do
+          nil ->
+            changeset
+
+          name ->
+            slug = name |> String.downcase() |> String.replace(" ", "-")
+            Ash.Changeset.change_attribute(changeset, :slug, slug)
+        end
       end
     end
 
