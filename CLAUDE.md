@@ -1,10 +1,13 @@
-# Anvil Project Guidelines
+# Project Project Guidelines
 
-This is an Intent v2.0.0 project.
+This is an Intent v2.0.0 project (formerly STP).
 
 ## Project Structure
 
 - `intent/` - Project artifacts (steel threads, docs, work tracking)
+  - `st/` - Steel threads organized as directories
+  - `docs/` - Technical documentation
+  - `llm/` - LLM-specific guidelines
 - `backlog/` - Task management (if using Backlog.md)
 - `.intent/` - Configuration and metadata
 
@@ -23,6 +26,17 @@ Steel threads are organized as directories under `intent/st/`:
 - `intent doctor` - Check configuration
 - `intent help` - Get help
 
+## Migration Notes
+
+This project was migrated from STP to Intent v2.0.0 on 2025-07-17.
+- Old structure: `stp/prj/st/`, `stp/eng/`, etc.
+- New structure: `intent/st/`, `intent/docs/`, etc.
+- Configuration moved from YAML to JSON format
+
 ## Author
 
-matts
+Unknown
+
+## LLM Guidelines
+
+- DO NOT PUT CLAUDE MESSAGES IN GIT COMMITS.
