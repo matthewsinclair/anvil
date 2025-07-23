@@ -1,8 +1,110 @@
-<div class="container mx-auto px-4 py-8">
-  <h1 class="text-4xl font-bold mb-4 uppercase">Dashboard</h1>
-  <div class="border-2 border-primary p-8 bg-base-200">
-    <p class="text-xl mb-4 font-mono">Welcome to your Anvil dashboard!</p>
-    <p class="text-base-content/80">This is where you'll manage your prompts and contexts.</p>
-    <p class="mt-4 text-sm text-base-content/60">[Under Construction]</p>
+<div class="space-y-8">
+  <!-- Dashboard Header -->
+  <div>
+    <h1 class="text-4xl font-bold text-primary mb-2 font-mono uppercase tracking-wider">
+      >> Dashboard
+    </h1>
+    <p class="text-base-content/60 font-mono">
+      Welcome back! Here's your context engineering overview.
+    </p>
+  </div>
+  
+<!-- Stats Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Prompts Card -->
+    <div class="bg-base-100 border-2 border-primary p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-4xl">📝</span>
+        <span class="text-xs font-mono text-success">+12%</span>
+      </div>
+      <p class="text-xs font-mono text-base-content/60 uppercase mb-1">Total Prompts</p>
+      <p class="text-3xl font-bold font-mono">42</p>
+    </div>
+    
+<!-- Contexts Card -->
+    <div class="bg-base-100 border-2 border-primary p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-4xl">📁</span>
+        <span class="text-xs font-mono text-success">+5%</span>
+      </div>
+      <p class="text-xs font-mono text-base-content/60 uppercase mb-1">Active Contexts</p>
+      <p class="text-3xl font-bold font-mono">18</p>
+    </div>
+    
+<!-- Tokens Card -->
+    <div class="bg-base-100 border-2 border-primary p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-4xl">🔢</span>
+        <span class="text-xs font-mono text-warning">-3%</span>
+      </div>
+      <p class="text-xs font-mono text-base-content/60 uppercase mb-1">Tokens Used</p>
+      <p class="text-3xl font-bold font-mono">128K</p>
+    </div>
+    
+<!-- Efficiency Card -->
+    <div class="bg-base-100 border-2 border-primary p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-4xl">⚡</span>
+        <span class="text-xs font-mono text-success">+8%</span>
+      </div>
+      <p class="text-xs font-mono text-base-content/60 uppercase mb-1">Efficiency Score</p>
+      <p class="text-3xl font-bold font-mono">94%</p>
+    </div>
+  </div>
+  
+<!-- Activity Section -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Recent Prompts -->
+    <div class="bg-base-100 border-2 border-primary shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+      <div class="px-6 py-4 border-b-2 border-primary">
+        <h3 class="text-lg font-bold font-mono uppercase">» Recent Prompts</h3>
+      </div>
+      <div class="p-6 space-y-4">
+        <%= for item <- [
+          {"Code Review Assistant", "2 mins ago", "✅"},
+          {"Documentation Generator", "1 hour ago", "✅"},
+          {"Test Case Builder", "3 hours ago", "⏸️"},
+          {"API Schema Validator", "Yesterday", "✅"}
+        ] do %>
+          <div class="flex items-center justify-between p-3 bg-base-200 border border-base-300">
+            <div>
+              <p class="font-mono text-sm">{elem(item, 0)}</p>
+              <p class="text-xs text-base-content/60 font-mono">{elem(item, 1)}</p>
+            </div>
+            <span class="text-xl">{elem(item, 2)}</span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    
+<!-- System Status -->
+    <div class="bg-base-100 border-2 border-primary shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+      <div class="px-6 py-4 border-b-2 border-primary">
+        <h3 class="text-lg font-bold font-mono uppercase">» System Status</h3>
+      </div>
+      <div class="p-6 space-y-4">
+        <%= for {label, value, status} <- [
+          {"API Status", "ONLINE", "text-success"},
+          {"Context Engine", "RUNNING", "text-success"},
+          {"Memory Usage", "42.8 MB", "text-warning"},
+          {"Response Time", "128ms", "text-success"}
+        ] do %>
+          <div class="flex items-center justify-between p-3">
+            <span class="font-mono text-sm text-base-content/80">{label}</span>
+            <span class={"font-mono text-sm font-bold #{status}"}>{value}</span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+  
+<!-- ASCII Art Footer -->
+  <div class="text-center py-8">
+    <pre class="text-xs text-base-content/40 font-mono inline-block">
+╔══════════════════════════════════╗
+║  ANVIL CONTEXT ENGINEERING v1.0  ║
+║  Ready for prompt optimization   ║
+╚══════════════════════════════════╝
+    </pre>
   </div>
 </div>

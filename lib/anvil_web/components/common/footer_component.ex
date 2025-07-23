@@ -19,12 +19,12 @@ defmodule AnvilWeb.Components.Common.FooterComponent do
         <p class="mb-1">
           © 2025
           <a
-            href="https://github.com/anthropics/anvil"
+            href="https://humanscale.studio"
             target="_blank"
             rel="noopener noreferrer"
             class="hover:text-primary transition-colors"
           >
-            Anvil
+            Human Scale
           </a>
         </p>
         <p class="text-[10px]">

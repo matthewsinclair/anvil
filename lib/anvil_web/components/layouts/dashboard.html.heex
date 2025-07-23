@@ -1,0 +1,21 @@
+<div class="drawer lg:drawer-open">
+  <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
+  
+<!-- Main Content -->
+  <div class="drawer-content flex flex-col min-h-screen bg-base-300">
+    <!-- Dashboard Header -->
+    <AnvilWeb.Components.Common.DashboardHeaderComponent.dashboard_header
+      current_user={assigns[:current_user]}
+      title={assigns[:page_title] || "Dashboard"}
+    />
+    
+<!-- Main Content Area -->
+    <main class="flex-1 p-4 sm:p-6 lg:p-8">
+      <.flash_group flash={@flash} />
+      {@inner_content}
+    </main>
+  </div>
+  
+<!-- Sidebar -->
+  <AnvilWeb.Components.Common.SidebarComponent.sidebar current_path={@conn.request_path} />
+</div>
