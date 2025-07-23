@@ -1,0 +1,6 @@
+# Anvil CLI completions
+help
+exit
+quit
+version
+repl

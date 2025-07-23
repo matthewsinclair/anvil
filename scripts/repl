@@ -3,5 +3,34 @@
 # Change to the project root directory
 cd "$(dirname "$0")/.." || exit 1
 
-# Start IEx with the mix project
-iex -S mix $*
+# Env vars are now loaded automatically by dotenv
+
+# Create completions file
+COMPLETIONS_FILE="./scripts/completions/completions.txt"
+
+# Check if rlwrap is available
+if command -v rlwrap > /dev/null; then
+  RLWRAP_CMD="rlwrap"
+  
+  # Use the static completions file
+  if [ -f "$COMPLETIONS_FILE" ]; then
+    RLWRAP_OPTS="-f $COMPLETIONS_FILE --complete-filenames"
+  else
+    RLWRAP_OPTS=""
+  fi
+else
+  RLWRAP_CMD=""
+  RLWRAP_OPTS=""
+  echo "Warning: rlwrap not found. Install rlwrap for command history and completion."
+fi
+
+# Define the original command
+# Set both ANVIL_* and ARCA_* environment variables to ensure compatibility
+ORIGINAL_COMMAND="REPL_MODE=true ANVIL_REPL_MODE=true ANVIL_ANSI_ENABLED=true mix anvil.cli repl $*"
+
+# Run the command with rlwrap if available
+if [ -n "$RLWRAP_CMD" ]; then
+  $RLWRAP_CMD $RLWRAP_OPTS $SHELL -c "$ORIGINAL_COMMAND"
+else
+  $SHELL -c "$ORIGINAL_COMMAND"
+fi

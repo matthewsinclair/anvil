@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# Change to the project root directory
+cd "$(dirname "$0")/.." || exit 1
+
+# Run the CLI with REPL mode for clean output
+# Env vars are now loaded automatically by dotenv
+REPL_MODE=true mix anvil.cli $*

@@ -1,0 +1,135 @@
+name: anvil
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+# Cancel in-progress runs for PRs when new commits are pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CACHE_VERSION: 1  # Increment to invalidate all caches
+  MIX_ENV: test
+  # Environment variables for your application
+  TOKEN_SIGNING_SECRET: ${{ secrets.TOKEN_SIGNING_SECRET }}
+  ANVIL_CONFIG_PATH: .
+  ANVIL_CONFIG_FILE: config.json
+
+jobs:
+  test:
+    name: Test and Quality Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: anvil_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine Elixir version
+        id: elixir_version
+        run: |
+          if [ -f .tool-versions ]; then
+            echo "version=$(grep -h elixir .tool-versions | awk '{ print $2 }' | awk -F - '{print $1}')" >> $GITHUB_OUTPUT
+          else
+            echo "version=1.18.4" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Determine OTP version
+        id: otp_version
+        run: |
+          if [ -f .tool-versions ]; then
+            echo "version=$(grep -h erlang .tool-versions | awk '{ print $2 }')" >> $GITHUB_OUTPUT
+          else
+            echo "version=27.3.4" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Beam
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ steps.otp_version.outputs.version }}
+          elixir-version: ${{ steps.elixir_version.outputs.version }}
+
+      - name: Restore deps cache
+        uses: actions/cache@v4
+        id: deps-cache
+        with:
+          path: deps
+          key: ${{ runner.os }}-${{ steps.elixir_version.outputs.version }}-${{ steps.otp_version.outputs.version }}-deps-v${{ env.CACHE_VERSION }}-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ steps.elixir_version.outputs.version }}-${{ steps.otp_version.outputs.version }}-deps-v${{ env.CACHE_VERSION }}-
+
+      - name: Restore _build cache
+        uses: actions/cache@v4
+        id: build-cache
+        with:
+          path: _build
+          key: ${{ runner.os }}-${{ steps.elixir_version.outputs.version }}-${{ steps.otp_version.outputs.version }}-build-v${{ env.CACHE_VERSION }}-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ steps.elixir_version.outputs.version }}-${{ steps.otp_version.outputs.version }}-build-v${{ env.CACHE_VERSION }}-
+
+      - name: Install hex and rebar
+        run: |
+          mix local.hex --force
+          mix local.rebar --force
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Compile dependencies
+        run: mix deps.compile
+
+      - name: Make scripts executable
+        run: |
+          chmod +x scripts/test
+          chmod +x scripts/server
+          chmod +x scripts/setup
+          chmod +x scripts/iex
+          chmod +x scripts/mix
+          chmod +x scripts/repl
+          chmod +x scripts/mcduct
+
+      - name: Compile application
+        run: mix compile --warnings-as-errors --force
+
+      - name: Check code formatting
+        run: mix format --check-formatted
+
+      - name: Run static analysis (Credo)
+        run: mix credo --only error
+
+      - name: Run tests
+        run: mix test
+
+  # Optional: Add this job if you want to build and push Docker images
+  # build-push:
+  #   name: Build and push Docker image
+  #   needs: test
+  #   runs-on: ubuntu-latest
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+  #     # Add Docker build and push steps here if needed

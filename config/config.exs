@@ -7,6 +7,9 @@
 # General application configuration
 import Config
 
+# Load environment variables early
+import_config "dotenv.exs"
+
 config :ash_oban, pro?: false
 
 config :anvil, Oban,
@@ -78,6 +81,21 @@ config :spark,
     ]
   ]
 
+# Configure Arca.Cli
+config :arca_cli,
+  env: config_env(),
+  name: "anvil_cli",
+  about: "Anvil CLI",
+  description: "Command-line interface for Anvil",
+  version: "0.1.0",
+  author: "dev@anvil.io",
+  url: "https://anvil.io",
+  prompt_symbol: "🔨",
+  configurators: [
+    Arca.Cli.Configurator.DftConfigurator
+    # Anvil.Cli.Commands.Configurator
+  ]
+
 config :anvil,
   ecto_repos: [Anvil.Repo],
   generators: [timestamp_type: :utc_datetime],
@@ -108,9 +126,9 @@ config :esbuild,
   version: "0.25.4",
   anvil: [
     args:
-      ~w(js/app.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/* --alias:@=.),
+      ~w(js/app.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/*),
     cd: Path.expand("../assets", __DIR__),
-    env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
+    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]
 
 # Configure tailwind (the version is required)

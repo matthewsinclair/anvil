@@ -39,4 +39,37 @@ defmodule Anvil.Application do
     AnvilWeb.Endpoint.config_change(changed, removed)
     :ok
   end
+
+  @impl true
+  def start_phase(:validate_directories, _type, _args) do
+    # Validate required directories exist
+    :ok
+  end
+
+  @impl true
+  def start_phase(:load_schemas, _type, _args) do
+    # Load any required schemas
+    :ok
+  end
+
+  @impl true
+  def start_phase(:initialize_registries, _type, _args) do
+    # Initialize any required registries
+    :ok
+  end
+
+  @impl true
+  def start_phase(:register_config_callbacks, _type, _args) do
+    # Register configuration callbacks
+    :ok
+  end
+
+  @impl true
+  def start_phase(:load_config, _type, _args) do
+    # Load configuration from dependencies in deterministic order
+    with :ok <- Arca.Config.load_config_phase(),
+         :ok <- Arca.Cli.load_config_phase() do
+      :ok
+    end
+  end
 end
