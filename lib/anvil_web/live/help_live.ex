@@ -1,6 +1,7 @@
 defmodule AnvilWeb.HelpLive do
   use AnvilWeb, :live_view
   use AnvilWeb.Live.CommandPaletteHandler
+  import AnvilWeb.LiveViewHelpers
 
   # Help page can be accessed by anyone, not just authenticated users
   on_mount {AnvilWeb.LiveUserAuth, :live_user_optional}
@@ -16,6 +17,7 @@ defmodule AnvilWeb.HelpLive do
   @impl true
   def render(assigns) do
     ~H"""
+    <.command_palette />
     <div class="space-y-6">
       <!-- Header -->
       <div class="bg-base-100 border-2 border-primary p-6">

@@ -1,6 +1,7 @@
 defmodule AnvilWeb.SettingsLive do
   use AnvilWeb, :live_view
   use AnvilWeb.Live.CommandPaletteHandler
+  import AnvilWeb.LiveViewHelpers
 
   on_mount {AnvilWeb.LiveUserAuth, :live_user_required}
 
@@ -15,6 +16,7 @@ defmodule AnvilWeb.SettingsLive do
   @impl true
   def render(assigns) do
     ~H"""
+    <.command_palette />
     <div class="space-y-6">
       <!-- Header -->
       <div class="bg-base-100 border-2 border-primary p-6">

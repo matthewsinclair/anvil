@@ -15,6 +15,7 @@ defmodule AnvilWeb.Components.Common.DashboardHeaderComponent do
       <.dashboard_header current_user={@current_user} />
   """
   attr :current_user, :any, default: nil
+  attr :is_live_view, :boolean, default: false
 
   def dashboard_header(assigns) do
     ~H"""
@@ -31,13 +32,12 @@ defmodule AnvilWeb.Components.Common.DashboardHeaderComponent do
         <!-- Spacer to balance the layout -->
       </div>
       
-    <!-- Center - Command Palette -->
+    <!-- Center - Empty for LiveView command palette -->
       <div class="navbar-center">
         <div class="form-control">
-          <.live_component
-            module={AnvilWeb.Components.Common.CommandPaletteComponent}
-            id="global-command-palette"
-          />
+          <div id="command-palette-mount-point">
+            <!-- Command palette will be mounted here in LiveViews -->
+          </div>
         </div>
       </div>
       

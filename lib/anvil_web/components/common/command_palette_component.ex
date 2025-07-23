@@ -134,8 +134,6 @@ defmodule AnvilWeb.Components.Common.CommandPaletteComponent do
 
   @impl true
   def update(%{open_palette: true} = assigns, socket) do
-    IO.puts("CommandPaletteComponent: Opening palette!")
-
     socket =
       socket
       |> assign(assigns)
@@ -151,7 +149,6 @@ defmodule AnvilWeb.Components.Common.CommandPaletteComponent do
   end
 
   def update(assigns, socket) do
-    IO.puts("CommandPaletteComponent: Regular update with assigns: #{inspect(Map.keys(assigns))}")
     {:ok, assign(socket, assigns)}
   end
 

@@ -29,6 +29,19 @@ const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute
 // Hooks
 const Hooks = {}
 
+// Hook to teleport command palette to header
+Hooks.CommandPaletteTeleport = {
+  mounted() {
+    const mountPoint = document.getElementById('command-palette-mount-point')
+    if (mountPoint) {
+      // Move this element's children to the mount point
+      while (this.el.firstChild) {
+        mountPoint.appendChild(this.el.firstChild)
+      }
+    }
+  }
+}
+
 Hooks.CommandPalette = {
   mounted() {
     
@@ -98,11 +111,14 @@ window.liveSocket = liveSocket
 
 // Global keyboard handler for Cmd+K
 window.addEventListener("keydown", (e) => {
-  if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+  // Cmd+K (Mac only, not Ctrl+K)
+  if (e.metaKey && !e.ctrlKey && e.key === "k") {
+    console.log("Cmd+K pressed, hook available:", !!window.__commandPaletteHook)
     e.preventDefault()
     e.stopPropagation()
     
     if (window.__commandPaletteHook) {
+      console.log("Sending event to server")
       // Send event to the server with modifier keys
       window.__commandPaletteHook.pushEvent("global_keydown", {
         key: e.key,
