@@ -113,6 +113,9 @@ defmodule Anvil.MixProject do
       # Markdown processing
       {:earmark, "~> 1.5.0-pre1"},
 
+      # Liquid templating
+      {:solid, "~> 0.15"},
+
       # Logging
       {:logger_file_backend, "~> 0.0.14"},
 

@@ -17,8 +17,8 @@ defmodule Anvil.Application do
          Application.fetch_env!(:anvil, Oban)
        )},
       {Phoenix.PubSub, name: Anvil.PubSub},
-      # Start a worker by calling: Anvil.Worker.start_link(arg)
-      # {Anvil.Worker, arg},
+      # Start the cache for prompts
+      {Anvil.Cache, subscribe_to_updates: true},
       # Start to serve requests, typically the last entry
       AnvilWeb.Endpoint,
       {Absinthe.Subscription, AnvilWeb.Endpoint},

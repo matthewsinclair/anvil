@@ -99,7 +99,7 @@ config :arca_cli,
 config :anvil,
   ecto_repos: [Anvil.Repo],
   generators: [timestamp_type: :utc_datetime],
-  ash_domains: [Anvil.Accounts]
+  ash_domains: [Anvil.Accounts, Anvil.Projects, Anvil.Prompts, Anvil.Bundles]
 
 # Configures the endpoint
 config :anvil, AnvilWeb.Endpoint,

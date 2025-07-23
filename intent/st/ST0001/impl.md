@@ -9,6 +9,74 @@ The Anvil system will be implemented as two main components:
 
 Both components will share common domain models defined using Ash Framework.
 
+## Plan
+
+Based on our design discussion and simplified decisions, here's the implementation plan:
+
+### Phase 1: Core Domain Setup
+
+1. **Create Ash domains and resources**:
+   - `Anvil.Projects` domain with Project resource
+   - `Anvil.Prompts` domain with PromptSet and Prompt resources
+   - `Anvil.Versions` domain for version tracking
+   - Basic relationships and policies
+
+2. **Database setup**:
+   - Add Solid gem for Liquid templating to mix.exs
+   - Create migrations for all resources
+   - Add approval_token_hash field for review workflow
+   - Create seed data for development
+
+### Phase 2: Basic Web UI
+
+1. **Phoenix LiveView pages**:
+   - Project listing and creation
+   - PromptSet editor with live preview
+   - Simple prompt template editor
+   - Version history view
+
+2. **Embedded mode support**:
+   - Mountable `/anvil` routes (optional)
+   - Auth delegation using `Anvil.Auth` behaviour
+   - Edit mode configuration (:live, :review, :locked)
+
+### Phase 3: Client Library Core
+
+1. **Essential client functions**:
+   - `Anvil.get/2` for fetching prompts
+   - Address parser for `@repo/bundle@version/prompt` format
+   - ETS-based cache with PubSub invalidation
+   - Liquid template rendering with custom filters
+
+2. **CLI tools**:
+   - `mix anvil.pull` - fetch prompts locally
+   - `mix anvil.approve` - approve changes with token
+   - `mix anvil.list` - show available prompts
+
+### Phase 4: Template Engine
+
+1. **Liquid integration**:
+   - Custom filters: `for_model`, `count_tokens`, `compose_with`
+   - Parameter validation
+   - Safe rendering in isolated processes
+
+### Simplified Decisions from Design Review
+
+- **Registry**: Skip for now, direct connections only
+- **Template Syntax**: Liquid + custom filters via Solid
+- **Caching**: ETS + PubSub invalidation
+- **Version Aliases**: Server-side with client override
+- **Review Workflow**: CLI-based with secret token
+- **Public/Private**: Single-tenant for Zaya only
+
+### Implementation Benefits
+
+- No registry service complexity
+- Single-tenant (Zaya only)  
+- CLI-based review approval
+- Direct client-to-service connection
+- Start with ETS caching only
+
 ## Code Examples
 
 ### Core Domain Models (Ash Resources)
