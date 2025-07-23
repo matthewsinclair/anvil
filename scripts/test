@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Run tests with trace enabled
+mix test --trace $*

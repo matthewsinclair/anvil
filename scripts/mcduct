@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Clean, update deps, compile and test
+mix clean && mix deps.update --all && mix compile --warnings-as-errors && scripts/test

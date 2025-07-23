@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Start the Phoenix server
+mix phx.server $*

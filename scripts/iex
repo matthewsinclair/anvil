@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Start interactive Elixir shell with the application
+iex -S mix $*

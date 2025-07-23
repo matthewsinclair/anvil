@@ -20,6 +20,7 @@ defmodule AnvilWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :load_from_session
+    plug :set_actor, :user
   end
 
   pipeline :api do
@@ -32,6 +33,22 @@ defmodule AnvilWeb.Router do
 
     plug :load_from_bearer
     plug :set_actor, :user
+  end
+
+  pipeline :authenticated do
+    plug :ensure_authenticated
+  end
+
+  defp ensure_authenticated(conn, _opts) do
+    # Check if user is authenticated using Ash Authentication helpers
+    if conn.assigns[:current_user] do
+      conn
+    else
+      conn
+      |> Phoenix.Controller.put_flash(:error, "You must be logged in to access this page.")
+      |> Phoenix.Controller.redirect(to: "/sign-in")
+      |> halt()
+    end
   end
 
   scope "/", AnvilWeb do
@@ -76,6 +93,8 @@ defmodule AnvilWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    get "/help", PageController, :help
+
     auth_routes AuthController, Anvil.Accounts.User, path: "/auth"
     sign_out_route AuthController
 
@@ -100,6 +119,16 @@ defmodule AnvilWeb.Router do
       auth_routes_prefix: "/auth",
       overrides: [AnvilWeb.AuthOverrides, AshAuthentication.Phoenix.Overrides.Default]
     )
+  end
+
+  # Authenticated routes
+  scope "/", AnvilWeb do
+    pipe_through [:browser, :authenticated]
+
+    get "/app", PageController, :dashboard
+    get "/dashboard", PageController, :dashboard
+    get "/account", PageController, :account
+    get "/settings", PageController, :settings
   end
 
   # Other scopes may use custom stacks.

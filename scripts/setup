@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Setup script for Anvil
+echo "Setting up Anvil..."
+
+# Get dependencies
+mix deps.get
+
+# Run Ash setup
+mix ash.setup
+
+# Setup assets
+mix assets.setup
+
+# Build assets
+mix assets.build
+
+# Create and migrate database
+mix ecto.create
+mix ecto.migrate
+
+# Seed the database
+mix run priv/repo/seeds.exs
+
+echo "Setup complete! You can now run: scripts/server"

@@ -7,11 +7,6 @@ completed:
 ---
 # ST0001: Initial specification
 
-- **Status**: In Progress
-- **Created**: 2025-07-23
-- **Completed**: 2025-07-23
-- **Author**: matts
-
 ## Objective
 
 [Clear statement of what this steel thread aims to accomplish]
