@@ -1,375 +1,543 @@
-# Design - ST0004: Anvil Peering
+# Design - ST0004: FORGE and LIVE Instance Architecture
 
-## Approach
+## Executive Summary
 
-Anvil Peering enables two distinct but related capabilities:
-1. **Import/Export**: Transfer complete projects or subsets between Anvil instances
-2. **Configuration Push**: Deploy prompts from management instance to lightweight clients
+This design document details the implementation of Anvil's distributed architecture, enabling Context Engineers to update prompts in production applications without code deployment. The system consists of FORGE instances (full Anvil web applications) and LIVE instances (lightweight client libraries) that communicate through a controlled distribution mechanism.
 
-The implementation follows a phased approach, starting with bundle format design, then import/export, and finally the push mechanism.
+## Core Concepts
 
-### Design Principles
+### FORGE Instance
 
-1. **Self-Contained Bundles**: Exports include all necessary dependencies
-2. **Version Aware**: Handle version conflicts and compatibility
-3. **Selective Transfer**: Export at project, prompt set, or prompt level
-4. **Security First**: Encrypted bundles, authenticated transfers
-5. **Backward Compatible**: Support older bundle formats
+A **FORGE instance** is a complete Anvil web application where Context Engineers manage prompts. Key characteristics:
 
-## Design Decisions
+- Full Phoenix LiveView UI for prompt management
+- Hosts multiple projects with prompt sets
+- Generates ACCESS_TOKENs for project distribution
+- Can peer with other FORGE instances for browsing/sharing
+- Controls distribution through prompt set status (LIVE/REVIEW/LOCKED)
 
-### 1. Bundle Format
+### LIVE Instance
 
-**Decision**: Use ZIP archives with JSON manifest
-**Rationale**:
-- Human-readable manifest for debugging
-- Compression reduces transfer size
-- Standard format with broad tooling support
-- Can include binary assets if needed
+A **LIVE instance** is the `anvil_client` library embedded in production applications. Key characteristics:
 
-### 2. Dependency Handling
+- Lightweight hex package with minimal dependencies
+- Connects to exactly one FORGE instance
+- Caches prompt data locally (ETS/DETS)
+- Provides simple API: `Anvil.prompt("prompt.id", variables)`
+- Two reception modes: ACCEPTING (receives updates) or FROZEN (no updates)
 
-**Decision**: Inline dependencies with deduplication
-**Rationale**:
-- Self-contained bundles work offline
-- Deduplication prevents bloat
-- Version resolution at export time
-- Simpler than package references
+### Bundle
 
-### 3. Push Protocol
+A **bundle** is the unit of distribution - a single PROMPT_SET_VERSION snapshot containing:
 
-**Decision**: HTTP-based with optional WebSocket upgrade
-**Rationale**:
-- HTTP works through firewalls
-- WebSocket enables real-time updates
-- Falls back gracefully
-- Standard authentication mechanisms
+- The complete JSONB snapshot from the database
+- Version metadata
+- Flat namespace of prompt IDs (e.g., "welcome.message", "error.not_found")
 
-### 4. Client Runtime
-
-**Decision**: Separate hex package `anvil_client`
-**Rationale**:
-- Minimal dependencies
-- Can embed in any Elixir app
-- Independent versioning
-- Smaller footprint than full Anvil
-
-## Architecture
-
-### Bundle Structure
+## Architecture Overview
 
 ```
-anvil_bundle_v1.zip
-├── manifest.json
-├── data/
-│   ├── projects/
-│   │   └── project_uuid.json
-│   ├── prompt_sets/
-│   │   └── prompt_set_uuid.json
-│   ├── prompts/
-│   │   └── prompt_uuid.json
-│   └── versions/
-│       └── version_uuid.json
-└── meta/
-    ├── checksums.json
-    └── signature.json
+┌─────────────────────────────────────┐     ┌─────────────────────────────────────┐
+│          FORGE Instance             │     │          LIVE Instance              │
+│    (promptwithanvil.com)            │     │    (Production Application)         │
+├─────────────────────────────────────┤     ├─────────────────────────────────────┤
+│                                     │     │                                     │
+│  Context Engineers ──▶ Web UI       │     │  Application Code                   │
+│           │                         │     │       │                             │
+│           ▼                         │     │       ▼                             │
+│    Edit Prompts                     │     │  Anvil.prompt("welcome.message")    │
+│           │                         │     │       │                             │
+│           ▼                         │     │       ▼                             │
+│    Status: LIVE/REVIEW/LOCKED       │     │  Local Cache (ETS)                  │
+│           │                         │     │       ▲                             │
+│           ▼                         │     │       │                             │
+│    [Publish to LIVE]                │     │   HTTP Endpoint                     │
+│           │                         │     │       ▲                             │
+│           └─────────────────────────┼─────┼───────┘                             │
+│                                     │     │                                     │
+│  ACCESS_TOKEN: xxx-yyy-zzz          │     │  Mode: ACCEPTING/FROZEN             │
+│                                     │     │                                     │
+└─────────────────────────────────────┘     └─────────────────────────────────────┘
 ```
 
-### Manifest Format
+## Detailed Design
+
+### 1. FORGE Instance Components
+
+#### 1.1 Forges Menu
+
+New left-navigation menu item that provides:
+
+- List of configured FORGE instances from application config
+- Browse interface for remote Organisations and Projects
+- "Connect" action to subscribe to remote projects
+- Visual indicators for connected/read-only projects
+
+Configuration example:
+
+```elixir
+config :anvil, :known_forges, [
+  %{
+    name: "Production Forge",
+    url: "https://forge.production.com",
+    bearer_token: System.get_env("FORGE_PROD_BEARER_TOKEN")
+  },
+  %{
+    name: "Partner Forge",
+    url: "https://partner.forge.com",
+    bearer_token: System.get_env("FORGE_PARTNER_BEARER_TOKEN")
+  }
+]
+```
+
+#### 1.2 Project ACCESS_TOKEN Management
+
+Each project can generate ACCESS_TOKENs for distribution:
+
+- Generated through project settings UI
+- Stored encrypted in database
+- Revocable at any time
+- Used by LIVE instances for authentication
+
+UI features:
+
+- "Generate New Token" button
+- Token display with show/hide toggle
+- "Copy to Clipboard" functionality
+- Token revocation with confirmation
+- Last used timestamp display
+
+#### 1.3 Status-Based Distribution Control
+
+Prompt Set Status determines distribution eligibility:
+
+**LOCKED** - Production Ready
+
+- No edits allowed in FORGE
+- Safe for distribution to production LIVE instances
+- Represents stable, tested prompts
+
+**REVIEW** - Pending Approval
+
+- Changes require approval
+- Could be distributed to staging/test environments
+- Not recommended for production
+
+**LIVE** - Active Development
+
+- Freely editable by Context Engineers
+- Should NOT be distributed to production
+- For experimentation and development
+
+#### 1.4 Publishing Mechanism
+
+Publishing workflow:
+
+1. Context Engineer navigates to LOCKED prompt set
+2. Clicks "Publish to LIVE" button
+3. System shows connected LIVE instances (based on ACCESS_TOKEN usage)
+4. Confirms publication
+5. FORGE pushes bundle to all ACCEPTING LIVE instances
+6. UI shows success/failure status for each instance
+
+### 2. LIVE Instance (`anvil_client`) Design
+
+#### 2.1 Package Structure
+
+```
+anvil_client/
+├── lib/
+│   ├── anvil_client.ex          # Main API
+│   ├── anvil_client/
+│   │   ├── cache.ex             # ETS/DETS caching
+│   │   ├── connection.ex        # FORGE connection management
+│   │   ├── receiver.ex          # HTTP endpoint for pushes
+│   │   └── config.ex            # Configuration handling
+├── mix.exs
+└── README.md
+```
+
+#### 2.2 Configuration
+
+Client configuration in host application:
+
+```elixir
+config :anvil_client,
+  forge_url: "https://promptwithanvil.com",
+  project_id: "uuid-of-project",
+  access_token: System.get_env("ANVIL_ACCESS_TOKEN"),
+  mode: :accepting,  # or :frozen
+  cache_dir: "priv/anvil_cache",
+  port: 4001  # Port for receiving pushes
+```
+
+#### 2.3 Core API
+
+Simple runtime API:
+
+```elixir
+# Get a prompt with variables
+prompt = Anvil.prompt("welcome.message", name: "John", role: "admin")
+# => "Welcome John! As an admin, you have full access."
+
+# Get raw prompt template
+template = Anvil.template("welcome.message")
+# => "Welcome {{name}}! As {{role}}, you have {{access_level}} access."
+
+# Check connection status
+Anvil.status()
+# => %{mode: :accepting, last_sync: ~U[2024-01-15 10:30:00Z], version: "1.2.3"}
+```
+
+#### 2.4 Caching Strategy
+
+Two-tier cache:
+
+1. **ETS** - In-memory cache for fast access
+2. **DETS** - Disk persistence for restart survival
+
+Cache population:
+
+- Initial sync on application start
+- Updates received via push (when ACCEPTING)
+- Manual sync via `mix anvil.sync` (when FROZEN)
+
+#### 2.5 Reception Modes
+
+**ACCEPTING Mode**:
+
+- HTTP endpoint active on configured port
+- Receives and applies pushed updates automatically
+- Logs all received updates
+- Suitable for development/staging
+
+**FROZEN Mode**:
+
+- HTTP endpoint disabled
+- No automatic updates accepted
+- Manual sync only via `mix anvil.sync`
+- Suitable for production stability
+
+Mode can be changed:
+
+- Via configuration
+- Via admin UI component (optional)
+- Via mix task: `mix anvil.mode frozen`
+
+### 3. Bundle Format Specification
+
+#### 3.1 Structure
+
+A bundle is a single PROMPT_SET_VERSION snapshot:
 
 ```json
 {
-  "format_version": "1.0",
-  "created_at": "2025-07-24T10:00:00Z",
-  "created_by": {
-    "user_id": "uuid",
-    "email": "user@example.com",
-    "organisation": "Acme Corp"
-  },
-  "bundle_type": "project",
-  "contents": {
-    "projects": ["uuid1"],
-    "prompt_sets": ["uuid2", "uuid3"],
-    "prompts": ["uuid4", "uuid5", "uuid6"],
-    "versions": ["uuid7", "uuid8"]
-  },
-  "dependencies": {
-    "external_refs": [],
-    "anvil_version": "1.0.0"
-  },
-  "metadata": {
-    "description": "Customer service prompt templates",
-    "tags": ["customer-service", "templates"]
+  "version": "1.2.3",
+  "prompt_set_id": "uuid",
+  "project_id": "uuid",
+  "created_at": "2024-01-15T10:30:00Z",
+  "snapshot": {
+    "welcome.message": {
+      "template": "Welcome {{name}}!",
+      "metadata": {...}
+    },
+    "error.not_found": {
+      "template": "Sorry, {{resource}} was not found.",
+      "metadata": {...}
+    }
   }
 }
 ```
 
-### Import/Export Flow
+#### 3.2 Delivery Format
+
+Bundles are delivered as:
+
+- JSON payload over HTTPS
+- Optional compression (gzip)
+- Checksum for integrity verification
+- Signed with FORGE's private key (future enhancement)
+
+### 4. Communication Protocol
+
+#### 4.1 FORGE to LIVE Push
 
 ```
-Export Process:
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Select    │     │   Gather    │     │   Create    │
-│  Resources  │────▶│Dependencies │────▶│   Bundle    │
-└─────────────┘     └─────────────┘     └─────────────┘
-                           │                     │
-                           ▼                     ▼
-                    ┌─────────────┐     ┌─────────────┐
-                    │  Resolve    │     │    Sign     │
-                    │  Conflicts  │     │   Bundle    │
-                    └─────────────┘     └─────────────┘
+POST /anvil/receive
+Authorization: Bearer <access_token>
+Content-Type: application/json
 
-Import Process:
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Verify    │     │   Preview   │     │   Import    │
-│   Bundle    │────▶│  Changes    │────▶│    Data     │
-└─────────────┘     └─────────────┘     └─────────────┘
-                           │                     │
-                           ▼                     ▼
-                    ┌─────────────┐     ┌─────────────┐
-                    │   Conflict  │     │   Update    │
-                    │ Resolution  │     │   Indices   │
-                    └─────────────┘     └─────────────┘
+{
+  "bundle": { <bundle_data> },
+  "forge_url": "https://promptwithanvil.com",
+  "project_id": "uuid",
+  "pushed_at": "2024-01-15T10:30:00Z"
+}
+
+Response:
+200 OK - Bundle accepted and applied
+401 Unauthorized - Invalid ACCESS_TOKEN
+409 Conflict - LIVE instance in FROZEN mode
 ```
 
-### Push Architecture
+#### 4.2 LIVE to FORGE Sync (Pull)
 
 ```
-Management Instance                    Client Application
-┌─────────────────┐                   ┌─────────────────┐
-│                 │                   │                 │
-│  Anvil Full     │                   │  Anvil Client   │
-│                 │                   │                 │
-│ ┌─────────────┐ │                   │ ┌─────────────┐ │
-│ │Push Manager │ │◀─────HTTP(S)─────▶│ │Pull Client  │ │
-│ └─────────────┘ │                   │ └─────────────┘ │
-│                 │                   │                 │
-│ ┌─────────────┐ │                   │ ┌─────────────┐ │
-│ │  Database   │ │                   │ │Local Cache  │ │
-│ └─────────────┘ │                   │ └─────────────┘ │
-└─────────────────┘                   └─────────────────┘
+GET /api/v1/projects/<project_id>/current_bundle
+Authorization: Bearer <access_token>
 
-Push Protocol:
-1. Client registers with management instance
-2. Client polls or subscribes to updates
-3. Management pushes configuration changes
-4. Client validates and applies changes
-5. Client acknowledges receipt
+Response:
+{
+  "bundle": { <bundle_data> },
+  "etag": "abc123",
+  "last_modified": "2024-01-15T10:30:00Z"
+}
 ```
 
-### Client Runtime Architecture
+### 5. Security Considerations
 
-```elixir
-# anvil_client/lib/anvil_client.ex
-defmodule AnvilClient do
-  @moduledoc """
-  Lightweight Anvil runtime for consuming prompts
-  """
-  
-  # Configuration
-  defmodule Config do
-    defstruct [
-      :management_url,
-      :api_key,
-      :cache_dir,
-      :poll_interval,
-      :mode  # :pull or :push
-    ]
-  end
-  
-  # Core API
-  def start_link(config)
-  def get_prompt(address, variables)
-  def render(prompt, variables)
-  def sync()
-  
-  # Cache Management
-  defmodule Cache do
-    def get(key)
-    def put(key, value, ttl)
-    def invalidate(pattern)
-  end
-  
-  # Sync Engine
-  defmodule Sync do
-    def pull_updates()
-    def apply_bundle(bundle)
-    def verify_state()
-  end
-end
+#### 5.1 Authentication
+
+- ACCESS_TOKENs are generated per project
+- Tokens are cryptographically secure random strings
+- Transmitted only over HTTPS
+- Stored encrypted in FORGE database
+
+#### 5.2 Authorization
+
+- FORGE verifies prompt set is LOCKED before distribution
+- LIVE instances verify ACCESS_TOKEN on every request
+- Project isolation enforced at database level
+
+#### 5.3 Data Protection
+
+- All communication over HTTPS
+- Optional bundle encryption (future enhancement)
+- No sensitive data in bundles (only prompt templates)
+
+### 6. Mix Tasks for Developer Experience
+
+#### 6.1 Installation
+
+```bash
+# Add dependency and initial setup
+mix anvil.install
+
+This will:
+1. Add anvil_client to mix.exs
+2. Create config/anvil.exs
+3. Add HTTP endpoint to your router
+4. Create cache directory
 ```
 
-## Bundle Operations
+#### 6.2 Connection Setup
 
-### Export Options
+```bash
+# Interactive connection wizard
+mix anvil.connect
 
-```elixir
-defmodule Anvil.Bundle.Export do
-  defstruct [
-    :scope,        # :project | :prompt_set | :selection
-    :resource_ids, # List of UUIDs
-    :include_deps, # Include dependencies
-    :format,       # :bundle_v1
-    :encryption,   # :none | :aes256
-    :signing_key   # Optional signing key
-  ]
-  
-  def export(options) do
-    options
-    |> gather_resources()
-    |> resolve_dependencies()
-    |> create_bundle()
-    |> sign_bundle()
-    |> encrypt_bundle()
-  end
-end
+> Enter FORGE URL: https://promptwithanvil.com
+> Enter Project ID: abc-123-def
+> Enter ACCESS_TOKEN: xxx-yyy-zzz
+> Initial mode (accepting/frozen) [accepting]: frozen
+
+Configuration saved to config/anvil.exs
 ```
 
-### Import Options
+#### 6.3 Management Tasks
 
-```elixir
-defmodule Anvil.Bundle.Import do
-  defstruct [
-    :bundle_path,
-    :target_org,
-    :conflict_resolution, # :skip | :overwrite | :version
-    :dry_run,
-    :mapping  # Remap resource IDs
-  ]
-  
-  def import(options) do
-    options
-    |> verify_bundle()
-    |> decrypt_bundle()
-    |> preview_changes()
-    |> resolve_conflicts()
-    |> apply_changes()
-  end
-end
+```bash
+# Manual sync (useful in FROZEN mode)
+mix anvil.sync
+
+# Change reception mode
+mix anvil.mode accepting
+mix anvil.mode frozen
+
+# View status
+mix anvil.status
+# => FORGE: https://promptwithanvil.com
+# => Project: abc-123-def
+# => Mode: FROZEN
+# => Last sync: 2024-01-15 10:30:00
+# => Version: 1.2.3
+# => Prompts: 42
 ```
 
-### Conflict Resolution
+### 7. FORGE Browsing and Peering
 
-```
-Conflict Types:
-1. Name Conflicts: Resource with same name exists
-2. Version Conflicts: Different versions of same resource
-3. Dependency Conflicts: Required dependency missing/different
+#### 7.1 Remote FORGE Browsing
 
-Resolution Strategies:
-┌─────────────────────────────────────────────────┐
-│ Strategy  │ Name      │ Version   │ Dependency │
-├───────────┼───────────┼───────────┼────────────┤
-│ Skip      │ Keep old  │ Keep old  │ Skip import│
-│ Overwrite │ Replace   │ Replace   │ Replace    │
-│ Version   │ Rename    │ New vers. │ Add missing│
-│ Manual    │ User pick │ User pick │ User pick  │
-└─────────────────────────────────────────────────┘
-```
+When browsing a remote FORGE:
 
-## Security Considerations
+1. Authenticate using configured bearer token
+2. Fetch organisation list
+3. For each org, fetch project list (filtered by permissions)
+4. Display projects with metadata (name, prompt count, last updated)
 
-### Bundle Security
+#### 7.2 Project Connection
 
-1. **Signing**: Ed25519 signatures for authenticity
-2. **Encryption**: Optional AES-256 for sensitive data
-3. **Checksums**: SHA-256 for integrity verification
-4. **Permissions**: Export requires read, import requires write
+"Connecting" to a remote project:
 
-### Push Security
+1. Creates a local reference to the remote project
+2. Marks it as read-only in the UI
+3. Does NOT copy data (remains on remote FORGE)
+4. Allows browsing prompts for reference/inspiration
 
-1. **mTLS**: Mutual TLS for instance communication
-2. **API Keys**: Scoped keys for client authentication
-3. **Rate Limiting**: Prevent DoS on push endpoints
-4. **Audit Trail**: Log all push operations
+#### 7.3 Visual Indicators
 
-### Data Validation
+Connected remote projects show:
 
-```elixir
-defmodule Anvil.Bundle.Validator do
-  def validate_bundle(bundle) do
-    with :ok <- validate_format(bundle),
-         :ok <- validate_manifest(bundle),
-         :ok <- validate_checksums(bundle),
-         :ok <- validate_signature(bundle),
-         :ok <- validate_resources(bundle) do
-      {:ok, bundle}
-    end
-  end
-  
-  def validate_resource(resource) do
-    # Ensure no script injection
-    # Validate Liquid templates
-    # Check parameter types
-    # Verify relationships
-  end
-end
-```
+- 🔗 Link icon indicating remote source
+- "Read-only" badge
+- Source FORGE name in subtitle
+- Different background color in project list
+
+### 8. Future Enhancements
+
+#### 8.1 LLM Proxy Features
+
+Building towards Anvil as an LLM proxy:
+
+- Token usage tracking per prompt
+- A/B testing different prompt versions
+- Automatic prompt optimization
+- Multi-LLM routing based on prompt type
+
+#### 8.2 Advanced Distribution
+
+- Scheduled publishing
+- Gradual rollout (percentage-based)
+- Environment-specific distribution
+- Automatic rollback on error thresholds
+
+#### 8.3 Enhanced Security
+
+- Asymmetric cryptography for bundle signing
+- End-to-end encryption for sensitive prompts
+- Audit logging with immutable trail
+- SOC2 compliance features
 
 ## Implementation Patterns
 
-### Bundle Creation
+### GenServer for Connection Management
 
 ```elixir
-def create_bundle(resources, options) do
-  with {:ok, temp_dir} <- create_temp_directory(),
-       :ok <- write_manifest(temp_dir, resources, options),
-       :ok <- write_resources(temp_dir, resources),
-       :ok <- calculate_checksums(temp_dir),
-       {:ok, zip_path} <- create_zip(temp_dir) do
-    {:ok, zip_path}
-  end
-end
-```
-
-### Push Client
-
-```elixir
-defmodule AnvilClient.PushClient do
+defmodule AnvilClient.Connection do
   use GenServer
   
-  def init(config) do
-    schedule_sync()
-    {:ok, %{config: config, last_sync: nil}}
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+  end
+  
+  def init(opts) do
+    # Schedule initial sync
+    Process.send_after(self(), :sync, 0)
+    
+    {:ok, %{
+      forge_url: opts[:forge_url],
+      access_token: opts[:access_token],
+      mode: opts[:mode] || :accepting,
+      last_sync: nil
+    }}
   end
   
   def handle_info(:sync, state) do
-    case sync_with_server(state.config) do
-      {:ok, updates} ->
-        apply_updates(updates)
-        schedule_sync()
+    case sync_with_forge(state) do
+      {:ok, bundle} ->
+        Cache.update(bundle)
         {:noreply, %{state | last_sync: DateTime.utc_now()}}
-      
-      {:error, _reason} ->
-        schedule_retry()
+      {:error, reason} ->
+        Logger.error("Sync failed: #{inspect(reason)}")
+        # Retry after delay
+        Process.send_after(self(), :sync, :timer.minutes(5))
         {:noreply, state}
     end
   end
 end
 ```
 
-## Alternatives Considered
+### Plug for Receiving Pushes
 
-### 1. Git-based Sync
+```elixir
+defmodule AnvilClient.Receiver do
+  use Plug.Router
+  
+  plug :match
+  plug :dispatch
+  
+  post "/anvil/receive" do
+    with :accepting <- AnvilClient.mode(),
+         {:ok, token} <- get_bearer_token(conn),
+         :ok <- verify_token(token),
+         {:ok, body, conn} <- read_body(conn),
+         {:ok, bundle} <- decode_bundle(body) do
+      
+      AnvilClient.Cache.update(bundle)
+      send_resp(conn, 200, "Bundle accepted")
+    else
+      :frozen ->
+        send_resp(conn, 409, "LIVE instance is frozen")
+      {:error, :unauthorized} ->
+        send_resp(conn, 401, "Unauthorized")
+      error ->
+        send_resp(conn, 400, "Bad request")
+    end
+  end
+end
+```
 
-**Pros**: Version control, diff tools, existing ecosystem
-**Cons**: Requires git, complex conflict resolution, not user-friendly
-**Decision**: Bundle format better for non-technical users
+## Testing Strategy
 
-### 2. GraphQL Subscriptions for Push
+### Unit Tests
 
-**Pros**: Real-time, standard protocol
-**Cons**: Complex client, requires persistent connection
-**Decision**: HTTP polling simpler and more reliable
+- Bundle parsing and validation
+- Cache operations
+- Template rendering
+- Configuration handling
 
-### 3. Embedded SQLite for Client Cache
+### Integration Tests
 
-**Pros**: Full SQL queries, ACID compliance
-**Cons**: Larger dependency, overkill for caching
-**Decision**: ETS/DETS sufficient for client needs
+- Full FORGE to LIVE push flow
+- Sync operations
+- Mode switching
+- Error handling
 
-### 4. Binary Protocol for Bundles
+### Load Tests
 
-**Pros**: Smaller size, faster parsing
-**Cons**: Not human-readable, harder to debug
-**Decision**: JSON manifest with binary data offers best balance
+- Multiple LIVE instances receiving pushes
+- Large bundle handling
+- Cache performance under load
+- Network failure recovery
+
+## Rollout Plan
+
+### Phase 0: Foundation (Week 1-2)
+
+- Implement Forges menu in existing Anvil
+- Add ACCESS_TOKEN generation to projects
+- Create browsing UI for remote FORGEs
+- Test with Context Engineers
+
+### Phase 1: Basic Distribution (Week 3-4)
+
+- Create anvil_client package
+- Implement basic push/receive
+- Add caching layer
+- Manual testing with sample app
+
+### Phase 2: Developer Experience (Week 5-6)
+
+- Create Igniter-based mix tasks
+- Add comprehensive documentation
+- Build example applications
+- Beta testing with partner teams
+
+### Phase 3: Production Hardening (Week 7-8)
+
+- Add monitoring and metrics
+- Implement retry logic
+- Performance optimization
+- Security audit
+
+This design provides a solid foundation for distributed prompt management while maintaining simplicity for both Context Engineers and developers. The architecture supports future expansion into a full LLM proxy platform while solving the immediate need for zero-deployment prompt updates.

@@ -1,293 +1,367 @@
-# Tasks - ST0004: Anvil Peering
+# Tasks - ST0004: FORGE and LIVE Instance Architecture
 
-## Phase 1: Bundle Format Design and Infrastructure
+## Phase 0: FORGE UI & Context Engineer Experience
 
-### Bundle Format Specification
-- [ ] Define bundle format version 1.0 specification
-  - [ ] Manifest JSON schema
-  - [ ] Directory structure
-  - [ ] Metadata requirements
-  - [ ] Compression format (ZIP)
-- [ ] Create bundle validation schemas
-  - [ ] JSON Schema for manifest
-  - [ ] Resource validation rules
-  - [ ] Checksum format
-- [ ] Design security specifications
-  - [ ] Ed25519 signature format
-  - [ ] AES-256 encryption spec
-  - [ ] Key management approach
+### Forges Menu Implementation
 
-### Core Bundle Modules
-- [ ] Create lib/anvil/bundle.ex module structure
-- [ ] Implement Anvil.Bundle.Manifest
-  - [ ] Manifest creation
-  - [ ] Manifest validation
-  - [ ] Version compatibility checking
-- [ ] Implement Anvil.Bundle.Resource
-  - [ ] Resource serialization
-  - [ ] Resource deserialization
-  - [ ] Relationship preservation
-- [ ] Implement Anvil.Bundle.Security
-  - [ ] Signature generation
-  - [ ] Signature verification
-  - [ ] Encryption/decryption helpers
+- [ ] Add "Forges" menu item to left navigation
+  - [ ] Create ForgesLive LiveView component
+  - [ ] Design list UI for configured forges
+  - [ ] Add configuration loading from config.exs
+- [ ] Implement remote FORGE browsing
+  - [ ] Bearer token authentication
+  - [ ] Fetch remote organisations API call
+  - [ ] Fetch remote projects API call
+  - [ ] Error handling for connection failures
+- [ ] Create project connection UI
+  - [ ] "Connect" button on remote projects
+  - [ ] Local reference storage (not data copy)
+  - [ ] Read-only indicator badges
+  - [ ] Source FORGE name display
 
-## Phase 2: Export Functionality
+### ACCESS_TOKEN Management
 
-### Export UI
-- [ ] Create export LiveView (BundleExportLive)
-  - [ ] Resource selection interface
-  - [ ] Dependency preview
-  - [ ] Export options form
-  - [ ] Progress indicator
-- [ ] Add export buttons to existing views
-  - [ ] Project page export
-  - [ ] Prompt set export
-  - [ ] Individual prompt export
-- [ ] Create export preview modal
-  - [ ] Show what will be included
-  - [ ] Dependency tree visualization
+- [ ] Add token generation to Project settings
+  - [ ] Create ProjectTokensLive component
+  - [ ] Generate cryptographically secure tokens
+  - [ ] Store encrypted in database
+  - [ ] Token display with show/hide toggle
+- [ ] Implement token UI features
+  - [ ] Copy to clipboard functionality
+  - [ ] Token revocation with confirmation
+  - [ ] Last used timestamp tracking
+  - [ ] Active/revoked status display
 
-### Export Implementation
-- [ ] Implement Anvil.Bundle.Export module
-  - [ ] gather_resources/2 function
-  - [ ] resolve_dependencies/1 function
-  - [ ] create_bundle/2 function
-- [ ] Create export actions in Ash
-  - [ ] Project.export_bundle action
-  - [ ] PromptSet.export_bundle action
-  - [ ] Prompt.export_bundle action
-- [ ] Implement dependency resolver
-  - [ ] Find all referenced resources
-  - [ ] Handle circular dependencies
-  - [ ] Version pinning
-- [ ] Create bundle writer
-  - [ ] Write manifest.json
-  - [ ] Write resource files
-  - [ ] Calculate checksums
-  - [ ] Create ZIP archive
+### Publishing UI
 
-### Export Security
-- [ ] Implement bundle signing
-  - [ ] Generate signing keys
-  - [ ] Sign manifest
-  - [ ] Include public key
-- [ ] Implement optional encryption
-  - [ ] Encrypt sensitive data
-  - [ ] Key exchange mechanism
-  - [ ] Decryption instructions
+- [ ] Add "Publish to LIVE" button
+  - [ ] Only show for LOCKED prompt sets
+  - [ ] Disabled state with tooltip for non-LOCKED
+  - [ ] Publishing confirmation dialog
+- [ ] Create publishing feedback
+  - [ ] Show connected LIVE instances
+  - [ ] Success/failure status per instance
+  - [ ] Error message display
+  - [ ] Retry failed publishes
 
-## Phase 3: Import Functionality
+### API Endpoints for Browsing
 
-### Import UI
-- [ ] Create import LiveView (BundleImportLive)
-  - [ ] File upload interface
-  - [ ] Bundle validation display
-  - [ ] Preview changes screen
-  - [ ] Conflict resolution UI
-  - [ ] Import progress
-- [ ] Create conflict resolution modal
-  - [ ] Show conflicts clearly
-  - [ ] Provide resolution options
-  - [ ] Preview resolution results
-- [ ] Add import navigation
-  - [ ] Import button on projects page
-  - [ ] Drag-and-drop support
+- [ ] GET /api/v1/forge/organisations
+  - [ ] Bearer token authentication
+  - [ ] Return org list with metadata
+- [ ] GET /api/v1/forge/projects/:org_id
+  - [ ] Filter by user permissions
+  - [ ] Include prompt set counts
+- [ ] GET /api/v1/forge/project/:id/details
+  - [ ] Full project metadata
+  - [ ] Prompt set list with status
 
-### Import Implementation
-- [ ] Implement Anvil.Bundle.Import module
-  - [ ] verify_bundle/1 function
-  - [ ] preview_changes/2 function
-  - [ ] resolve_conflicts/2 function
-  - [ ] apply_changes/2 function
-- [ ] Create import actions in Ash
-  - [ ] Organisation.import_bundle action
-  - [ ] Conflict resolution helpers
-- [ ] Implement bundle reader
-  - [ ] Extract ZIP safely
-  - [ ] Validate manifest
-  - [ ] Verify checksums
-  - [ ] Load resources
-- [ ] Implement conflict detection
-  - [ ] Name conflicts
-  - [ ] Version conflicts
-  - [ ] ID conflicts
-  - [ ] Dependency conflicts
-- [ ] Implement conflict resolution
-  - [ ] Skip strategy
-  - [ ] Overwrite strategy
-  - [ ] Version strategy
-  - [ ] Manual resolution
+## Phase 1: Basic FORGE-to-LIVE Distribution
 
-### Import Security
-- [ ] Verify bundle signatures
-- [ ] Handle encrypted bundles
-- [ ] Validate resource content
-- [ ] Prevent malicious imports
+### anvil_client Package Creation
 
-## Phase 4: Configuration Push - Client Package
+- [ ] Initialize hex package structure
+  - [ ] mix new anvil_client --module AnvilClient
+  - [ ] Configure mix.exs with minimal deps
+  - [ ] Add hex metadata
+- [ ] Define dependencies
+  - [ ] Jason for JSON parsing
+  - [ ] Optionally Tesla for HTTP
+  - [ ] No heavy dependencies
 
-### Create anvil_client package
-- [ ] Initialize new Hex package
-  - [ ] mix new anvil_client
-  - [ ] Configure mix.exs
-  - [ ] Set up documentation
-- [ ] Define minimal dependencies
-  - [ ] Jason for JSON
-  - [ ] Tesla for HTTP
-  - [ ] Solid for template rendering
-  - [ ] ETS for caching
+### Core Client Implementation
 
-### Client Core Modules
-- [ ] Implement AnvilClient module
-  - [ ] start_link/1 for supervision
-  - [ ] get_prompt/2 public API
-  - [ ] render/2 for templates
-  - [ ] sync/0 for updates
-- [ ] Implement AnvilClient.Config
-  - [ ] Configuration struct
-  - [ ] Validation
-  - [ ] Default values
-- [ ] Implement AnvilClient.Cache
-  - [ ] ETS-based cache
-  - [ ] TTL support
-  - [ ] Cache invalidation
-  - [ ] Persistence with DETS
+- [ ] Create AnvilClient main module
+  - [ ] prompt/2 function for runtime access
+  - [ ] template/1 for raw template access
+  - [ ] status/0 for connection info
+- [ ] Implement cache layer
+  - [ ] ETS table for in-memory storage
+  - [ ] DETS for persistence
+  - [ ] Cache warming on startup
+  - [ ] TTL handling (optional)
+- [ ] Create connection manager
+  - [ ] GenServer for connection state
+  - [ ] Initial sync on startup
+  - [ ] Retry logic for failures
+  - [ ] Health check mechanism
 
-### Client Sync Engine
-- [ ] Implement AnvilClient.Sync
-  - [ ] HTTP polling mechanism
-  - [ ] Version checking
-  - [ ] Delta updates
-  - [ ] Full sync fallback
-- [ ] Implement AnvilClient.Registry
-  - [ ] Local prompt registry
-  - [ ] Fast lookups
-  - [ ] Relationship handling
-- [ ] Create sync protocol
-  - [ ] Version negotiation
-  - [ ] Change detection
-  - [ ] Efficient updates
+### Bundle Format Implementation
 
-## Phase 5: Configuration Push - Server Side
+- [ ] Define bundle structure
+  - [ ] Single PROMPT_SET_VERSION snapshot
+  - [ ] Version metadata
+  - [ ] Flat prompt ID namespace
+  - [ ] JSON serialization
+- [ ] Create bundle generator in FORGE
+  - [ ] Extract snapshot from database
+  - [ ] Add metadata wrapper
+  - [ ] JSON encoding
+  - [ ] Optional gzip compression
 
-### Push Management UI
-- [ ] Create push configuration LiveView
-  - [ ] Client registration list
-  - [ ] Push history
-  - [ ] Manual push triggers
-  - [ ] Client status monitoring
-- [ ] Add push settings to projects
-  - [ ] Enable/disable push
-  - [ ] Client whitelist
-  - [ ] Push scheduling
+### HTTP Receiver Endpoint
 
-### Push API Endpoints
-- [ ] Create push controller
-  - [ ] POST /api/v1/push/register
-  - [ ] GET /api/v1/push/check
-  - [ ] GET /api/v1/push/bundle
-  - [ ] POST /api/v1/push/acknowledge
-- [ ] Implement authentication
-  - [ ] Special push API keys
-  - [ ] Client identification
-  - [ ] Rate limiting
-- [ ] Create push actions
-  - [ ] Project.prepare_push_bundle
-  - [ ] Track client versions
-  - [ ] Generate deltas
+- [ ] Create Plug module for receiving
+  - [ ] POST /anvil/receive endpoint
+  - [ ] Bearer token validation
+  - [ ] Mode checking (ACCEPTING/FROZEN)
+  - [ ] Bundle parsing and validation
+- [ ] Implement bundle application
+  - [ ] Parse incoming bundle
+  - [ ] Update ETS cache
+  - [ ] Persist to DETS
+  - [ ] Log update event
 
-### Push Infrastructure
-- [ ] Implement push manager GenServer
-  - [ ] Track registered clients
-  - [ ] Monitor client health
+### FORGE Push Implementation
+
+- [ ] Create push manager GenServer
+  - [ ] Track LIVE instances by token usage
   - [ ] Queue push operations
-  - [ ] Handle failures
-- [ ] Create push notifications
-  - [ ] WebSocket support (future)
-  - [ ] HTTP long-polling
-  - [ ] Webhook callbacks
-- [ ] Implement push audit log
-  - [ ] Track all push events
-  - [ ] Client acknowledgments
-  - [ ] Error tracking
+  - [ ] Handle failures gracefully
+- [ ] Implement push action
+  - [ ] Bundle generation
+  - [ ] HTTP POST to LIVE instances
+  - [ ] Success/failure tracking
+  - [ ] Retry logic
 
-## Phase 6: Testing and Documentation
+### Sync Protocol
 
-### Testing
-- [ ] Unit tests for bundle format
-  - [ ] Manifest validation
-  - [ ] Resource serialization
-  - [ ] Security functions
-- [ ] Integration tests for import/export
-  - [ ] Full cycle tests
-  - [ ] Conflict scenarios
-  - [ ] Large bundle handling
-- [ ] Client package tests
-  - [ ] Sync mechanism
-  - [ ] Cache behavior
-  - [ ] Error handling
-- [ ] End-to-end push tests
-  - [ ] Registration flow
-  - [ ] Update propagation
-  - [ ] Failure recovery
+- [ ] GET endpoint for manual sync
+  - [ ] /api/v1/projects/:id/current_bundle
+  - [ ] ETag support for caching
+  - [ ] Last-Modified headers
+- [ ] Client pull implementation
+  - [ ] Check for updates
+  - [ ] Download bundle
+  - [ ] Apply to cache
 
-### Documentation
-- [ ] Bundle format specification doc
-- [ ] Import/export user guide
-- [ ] Client integration guide
-- [ ] Push configuration guide
-- [ ] Security best practices
-- [ ] API documentation updates
+## Phase 2: Developer Experience
 
-### Examples
-- [ ] Example export scripts
-- [ ] Example import workflows
-- [ ] Client integration example
-- [ ] Push setup tutorial
+### Igniter Mix Tasks
 
-## Task Notes
+- [ ] Create mix anvil.install
+  - [ ] Add anvil_client to deps
+  - [ ] Generate config template
+  - [ ] Add supervisor entry
+  - [ ] Create cache directory
+- [ ] Create mix anvil.connect
+  - [ ] Interactive prompts
+  - [ ] Validate connection
+  - [ ] Save configuration
+  - [ ] Initial sync
+- [ ] Create mix anvil.sync
+  - [ ] Manual sync trigger
+  - [ ] Progress display
+  - [ ] Error reporting
+- [ ] Create mix anvil.mode
+  - [ ] Switch between ACCEPTING/FROZEN
+  - [ ] Update configuration
+  - [ ] Restart receiver if needed
+- [ ] Create mix anvil.status
+  - [ ] Display connection info
+  - [ ] Show cache statistics
+  - [ ] List available prompts
 
-### Critical Path
-1. Bundle format must be finalized first
-2. Export implementation before import
-3. Client package can be developed in parallel
-4. Push server requires client package
+### Configuration Management
 
-### Security Considerations
-- All imports must be validated
-- Signing should be mandatory for production
-- Client authentication is critical
-- Rate limiting on all endpoints
+- [ ] Create config template
+  - [ ] Document all options
+  - [ ] Provide sensible defaults
+  - [ ] Environment variable support
+- [ ] Runtime configuration
+  - [ ] Allow runtime mode changes
+  - [ ] Dynamic port configuration
+  - [ ] Multiple environment support
 
-### Performance Targets
-- Export: < 5 seconds for typical project
-- Import: < 10 seconds including validation
-- Push check: < 100ms response time
-- Client sync: < 2 seconds for full sync
+### Admin UI Component (Optional)
 
-## Dependencies
+- [ ] Create LiveView component
+  - [ ] Display connection status
+  - [ ] Mode toggle switch
+  - [ ] Manual sync button
+  - [ ] Cache statistics
+- [ ] Mount in host application
+  - [ ] Provide mounting instructions
+  - [ ] Style customization options
+  - [ ] Authorization integration
 
-### Technical Dependencies
-- Erlang :zip module for archives
-- :crypto for signatures
-- Jason for JSON handling
-- Tesla for HTTP client
+## Phase 3: Advanced Features
 
-### Knowledge Dependencies
-- Understanding of Ash actions
-- LiveView for UI components
-- GenServer for push manager
-- ETS for client caching
+### Full FORGE-to-FORGE Peering
 
-### Infrastructure Dependencies
-- File storage for temporary bundles
-- Increased API rate limits
-- Client package hosting (Hex)
+- [ ] Implement bidirectional browsing
+  - [ ] Mutual authentication
+  - [ ] Project discovery
+  - [ ] Permission negotiation
+- [ ] Advanced connection features
+  - [ ] Favorite forges
+  - [ ] Connection history
+  - [ ] Automatic reconnection
 
-### Completion Order
-1. Phase 1 (Bundle Format) - Foundation for all features
-2. Phase 2 & 3 (Import/Export) - Can be done together
-3. Phase 4 (Client Package) - Can start after Phase 1
-4. Phase 5 (Push Server) - Requires client package
-5. Phase 6 (Testing/Docs) - Throughout development
+### Multi-Environment Support
+
+- [ ] Environment-aware distribution
+  - [ ] Tag LIVE instances by environment
+  - [ ] Selective publishing
+  - [ ] Environment-specific tokens
+- [ ] Configuration templates
+  - [ ] Dev/staging/prod presets
+  - [ ] Environment variables
+  - [ ] Automatic mode selection
+
+### Enhanced Monitoring
+
+- [ ] Distribution metrics
+  - [ ] Push success rates
+  - [ ] Sync frequency
+  - [ ] Bundle sizes
+  - [ ] Latency measurements
+- [ ] Client health monitoring
+  - [ ] Last sync times
+  - [ ] Error rates
+  - [ ] Cache hit rates
+
+## Testing Requirements
+
+### Unit Tests
+
+- [ ] FORGE components
+  - [ ] Token generation
+  - [ ] Bundle creation
+  - [ ] API endpoints
+- [ ] Client package
+  - [ ] Cache operations
+  - [ ] Bundle parsing
+  - [ ] Connection management
+  - [ ] Template rendering
+
+### Integration Tests
+
+- [ ] Full push flow
+  - [ ] LOCKED prompt set → publish → receive
+  - [ ] Mode switching behavior
+  - [ ] Failure scenarios
+- [ ] Sync operations
+  - [ ] Initial sync
+  - [ ] Update sync
+  - [ ] Conflict handling
+
+### End-to-End Tests
+
+- [ ] Context Engineer workflow
+  - [ ] Edit prompt
+  - [ ] Lock prompt set
+  - [ ] Publish to LIVE
+  - [ ] Verify in client
+- [ ] Developer workflow
+  - [ ] Install client
+  - [ ] Connect to FORGE
+  - [ ] Use prompts in code
+
+## Documentation Tasks
+
+### User Documentation
+
+- [ ] Context Engineer guide
+  - [ ] Understanding FORGE/LIVE
+  - [ ] Publishing workflow
+  - [ ] Status management
+- [ ] Developer guide
+  - [ ] Installation steps
+  - [ ] Configuration options
+  - [ ] API reference
+  - [ ] Troubleshooting
+
+### Technical Documentation
+
+- [ ] Architecture overview
+  - [ ] FORGE components
+  - [ ] LIVE components
+  - [ ] Communication flow
+- [ ] Bundle format specification
+- [ ] Security considerations
+- [ ] Performance tuning
+
+### Example Applications
+
+- [ ] Simple Phoenix app with anvil_client
+- [ ] Multi-environment setup example
+- [ ] Custom admin UI integration
+- [ ] CI/CD integration patterns
+
+## Performance Considerations
+
+### Targets
+
+- [ ] Bundle generation: < 100ms
+- [ ] Push delivery: < 1 second
+- [ ] Client prompt access: < 1ms
+- [ ] Initial sync: < 5 seconds
+
+### Optimizations
+
+- [ ] Bundle compression
+- [ ] Incremental updates (future)
+- [ ] Connection pooling
+- [ ] Cache warming strategies
+
+## Security Checklist
+
+### FORGE Security
+
+- [ ] Token generation entropy
+- [ ] Token storage encryption
+- [ ] API rate limiting
+- [ ] Audit logging
+
+### Client Security
+
+- [ ] Token transmission over HTTPS only
+- [ ] Local token storage security
+- [ ] Bundle integrity verification
+- [ ] No code execution from bundles
+
+### Communication Security
+
+- [ ] TLS for all connections
+- [ ] Certificate pinning (optional)
+- [ ] Request signing (future)
+- [ ] Replay attack prevention
+
+## Rollback Plan
+
+### Feature Flags
+
+- [ ] Enable/disable peering
+- [ ] Gradual rollout by organisation
+- [ ] Quick disable mechanism
+
+### Data Safety
+
+- [ ] No destructive operations
+- [ ] Forward-only versioning
+- [ ] Cache corruption recovery
+- [ ] Connection failure handling
+
+## Success Metrics
+
+### Adoption Metrics
+
+- [ ] Number of FORGE instances
+- [ ] Number of LIVE instances
+- [ ] Prompts distributed per day
+- [ ] Context Engineer engagement
+
+### Performance Metrics
+
+- [ ] Distribution latency
+- [ ] Cache hit rates
+- [ ] Sync frequency
+- [ ] Error rates
+
+### User Satisfaction
+
+- [ ] Context Engineer feedback
+- [ ] Developer experience survey
+- [ ] Support ticket volume
+- [ ] Feature request patterns

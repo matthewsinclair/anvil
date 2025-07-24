@@ -1,77 +1,115 @@
 ---
 verblock: "24 Jul 2025:v1.0: matts - Defined peering objectives"
+verblock: "24 Jul 2025:v2.0: matts - Refined to FORGE/LIVE architecture"
 stp_version: 2.0.0
 status: In Progress
 created: 20250724
 completed: 
 ---
-# ST0004: Anvil Peering - Import/Export and Configuration Push
+# ST0004: Anvil Peering - FORGE and LIVE Instance Architecture
 
 ## Objective
 
-Implement peering capabilities for Anvil that enable two critical workflows:
+Enable Context Engineers to update prompts in production applications without requiring code deployment, through a distributed architecture of FORGE (full Anvil instances) and LIVE (lightweight client) instances.
 
-1. **Import/Export**: Transfer projects, prompt sets, and configurations between Anvil instances
-2. **Configuration Push**: Deploy prompt configurations from a management instance to lightweight client applications
+### Primary Goals
 
-This functionality transforms Anvil from a standalone prompt management system into a distributed prompt infrastructure platform.
+1. **FORGE Instances**: Full Anvil web applications where Context Engineers manage and edit prompts
+2. **LIVE Instances**: Lightweight client libraries (`anvil_client`) embedded in production applications
+3. **Controlled Distribution**: Push prompt updates from FORGE to LIVE instances with fine-grained control
+4. **Zero-Downtime Updates**: Update prompts in production without application restart or deployment
 
 ## Context
 
-As organisations adopt Anvil for prompt management, they need capabilities beyond single-instance usage:
+The driving use case: A SaaS application with extensive LLM prompt usage needs to allow non-technical Context Engineers to iterate on prompts in production based on user feedback, without involving developers or deployment processes.
 
-### Import/Export Use Cases
+### Key Design Principles
 
-- **Development to Production**: Move prompts from dev/staging to production environments
-- **Cross-team Collaboration**: Share prompt sets between different teams or departments
-- **Backup and Recovery**: Export projects for backup or migration purposes
-- **Template Sharing**: Distribute reusable prompt templates across organisations
+- **Simplicity**: Context Engineers can publish updates with a single button click
+- **Control**: Both FORGE (via status) and LIVE (via mode) control what gets distributed
+- **Safety**: LOCKED prompt sets ensure production stability
+- **Transparency**: Clear visual indicators of prompt set status and distribution state
 
-### Configuration Push Use Cases
+### Architecture Overview
 
-- **Edge Deployment**: Push prompts to client applications without full Anvil installation
-- **Lightweight Clients**: Embedded Anvil runtime that only consumes prompts
-- **Real-time Updates**: Push configuration changes to running applications
-- **Multi-environment Management**: Manage dev/staging/prod from a central instance
+**FORGE Instance** (e.g., promptwithanvil.com):
 
-This steel thread establishes the foundation for Anvil as a distributed prompt management platform, enabling enterprise-scale deployments and ecosystem growth.
+- Full Anvil web application
+- Context Engineers edit prompts through UI
+- Prompt sets have status: LIVE (editing), REVIEW (approval needed), LOCKED (production-ready)
+- Can peer with other FORGE instances for browsing/sharing
+- Generates ACCESS_TOKENs for project distribution
+
+**LIVE Instance** (embedded in production apps):
+
+- Lightweight `anvil_client` hex package
+- Connects to exactly one FORGE instance
+- Two modes: ACCEPTING (receives updates) or FROZEN (no updates)
+- Prompts accessed via simple API: `Anvil.prompt("welcome.message", vars)`
+- Local caching means no runtime network calls
+
+This transforms Anvil from a standalone system into a distributed prompt infrastructure, enabling real-time prompt optimization without deployment complexity.
+
+## Expected Outcomes
+
+1. **For Context Engineers**:
+   - Browse and connect to remote FORGE instances through new "Forges" menu
+   - Publish LOCKED prompt sets to production with one click
+   - See clear status indicators for prompt set distribution state
+   - Manage prompt updates without developer involvement
+
+2. **For Developers**:
+   - Simple setup: `mix anvil.install` and `mix anvil.connect`
+   - Clean API: `Anvil.prompt("prompt.id", variables)`
+   - Control over update acceptance (ACCEPTING/FROZEN modes)
+   - No runtime network dependencies
+
+3. **For Operations**:
+   - Zero-downtime prompt updates
+   - Version pinning for stability
+   - Audit trail of all prompt distributions
+   - Rollback through forward-versioning
 
 ## Related Steel Threads
 
-- ST0001: Anvil prompt management system - Core functionality being distributed
-- ST0003: Organisations own projects - Multi-tenancy considerations for peering
-- ST0005: Documentation update - Bundle format documented in TPD
-- Future: Registry service will build on import/export capabilities
+- ST0001: Core Anvil functionality - Base system being extended
+- ST0003: Organisations own projects - Project-level ACCESS_TOKENs
+- Future: Anvil as LLM proxy - Token tracking, multi-LLM routing
 
-## Context for LLM
+## Implementation Approach
 
-This steel thread implements two major features:
+### Phase 0: FORGE UI & Context Engineer Experience
 
-### 1. Import/Export System
+- Add "Forges" menu for peering UI
+- Browse remote FORGE instances and projects
+- Generate and manage ACCESS_TOKENs
+- Test UX with actual Context Engineers
 
-- Bundle format for packaging projects with dependencies
-- Conflict resolution for imports
-- Version compatibility checking
-- Selective export (project, prompt set, or individual prompts)
+### Phase 1: Basic FORGE-to-LIVE Distribution
 
-### 2. Configuration Push
+- Create `anvil_client` hex package
+- Implement bundle format (PROMPT_SET_VERSION snapshots)
+- Build push/receive infrastructure
+- Local caching with ETS/DETS
 
-- Lightweight Anvil runtime for client apps
-- Push protocol (HTTP/WebSocket)
-- Authentication between instances
-- Configuration versioning and rollback
+### Phase 2: Developer Experience
 
-Key technical considerations:
+- Igniter-based setup tasks
+- Configuration management
+- Admin UI for ACCEPTING/FROZEN toggle
 
-- Bundle format should be self-contained but not bloated
-- Must handle version conflicts gracefully
-- Security is critical for inter-instance communication
-- Client runtime should have minimal dependencies
+### Phase 3: Advanced Features
 
-### How to update this document
+- Full FORGE-to-FORGE peering
+- Multi-environment management
+- Advanced distribution strategies
 
-1. Update the status as work progresses
-2. Update related documents (design.md, impl.md, etc.) as needed
-3. Mark the completion date when finished
+## Technical Decisions
 
-The LLM should assist with implementation details and help maintain this document as work progresses.
+- **Bundle Format**: Single PROMPT_SET_VERSION snapshot as JSONB
+- **Authentication**: Project-level ACCESS_TOKENs, manual distribution
+- **Namespace**: Flat text IDs (e.g., "welcome.message") within snapshots
+- **Versioning**: Pin to specific versions, roll forward only
+- **Architecture**: 1:1 FORGE-LIVE relationships for simplicity
+
+This design prioritises simplicity and control while laying groundwork for future expansion into a full LLM proxy platform.
