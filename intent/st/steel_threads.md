@@ -12,3 +12,5 @@ ST0001     | Initial specification                                      | In Pro
 <!-- END: STEEL_THREAD_INDEX -->| ST0003 | Organisations own projects | Not Started | 2025-07-24 |  |
 | ST0003 | Organisations own projects | In Progress | 2025-07-24 |  |
 | ST0004 | Anvil Peering | In Progress | 2025-07-24 |  |
+| ST0005 | Documentation Update | In Progress | 2025-07-24 |  |
+| ST0006 | Testing core functionality | In Progress | 2025-07-24 |  |
