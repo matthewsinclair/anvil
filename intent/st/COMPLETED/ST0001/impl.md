@@ -18,24 +18,28 @@ Anvil has been implemented as a Phoenix LiveView application using Ash Framework
 ### Core Domains
 
 #### Accounts Domain (`lib/anvil/accounts/`)
+
 - **User Resource**: Authentication with password, magic link, and API keys
 - **Token Resource**: JWT token management
 - **ApiKey Resource**: API authentication
 - **Custom Actions**: `invite_to_organisation` for user invitations
 
 #### Organisations Domain (`lib/anvil/organisations/`)
+
 - **Organisation Resource**: Multi-tenancy support with personal orgs
 - **Membership Resource**: Join table with roles (owner/admin/member)
 - **Policies**: Ownership-based access control
 - **Changes**: Automatic slug generation
 
 #### Projects Domain (`lib/anvil/projects/`)
+
 - **Project Resource**: Belongs to organisations
 - **Attributes**: name, slug, description
 - **Policies**: Organisation membership required
 - **Relationships**: Has many prompt sets
 
 #### Prompts Domain (`lib/anvil/prompts/`)
+
 - **PromptSet Resource**: Container for related prompts
 - **Prompt Resource**: Individual prompts with Liquid templates
 - **Version Resource**: Immutable snapshots (basic implementation)
@@ -44,6 +48,7 @@ Anvil has been implemented as a Phoenix LiveView application using Ash Framework
 ### Key Implementation Features
 
 #### Custom Parameter Type
+
 ```elixir
 defmodule Anvil.Types.ParameterList do
   use Ash.Type
@@ -63,6 +68,7 @@ end
 ```
 
 #### Template Analyzer
+
 ```elixir
 defmodule Anvil.Template.Analyzer do
   @variable_regex ~r/\{\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\}\}/
@@ -109,27 +115,32 @@ end
 ### UI Components
 
 #### Command Palette
+
 - Global keyboard shortcut (Cmd+K)
 - Searchable navigation
 - Integrated with all LiveViews via `CommandPaletteHandler`
 
 #### Organisation Switcher
+
 - Dropdown in navigation bar
 - Updates session context
 - Filters all data by selected organisation
 
 #### Breadcrumb Navigation
+
 - Hierarchical navigation trail
 - Context-aware based on current route
 
 ## Authentication & Authorization
 
 ### Authentication Methods
+
 1. **Password**: Traditional email/password
 2. **Magic Link**: Email-based passwordless login
 3. **API Keys**: For programmatic access
 
 ### Authorization Model
+
 - **Organisation-based**: All resources belong to organisations
 - **Role-based**: Owner > Admin > Member permissions
 - **Personal Organisations**: Every user gets one automatically
@@ -138,12 +149,14 @@ end
 ## Template System
 
 ### Liquid Integration
+
 - Uses Solid gem for Liquid template parsing
 - Variable extraction with regex
 - Parameter validation against template variables
 - Auto-population of missing parameters
 
 ### Parameter Management
+
 - Dynamic parameter definition
 - Types: string, number, boolean
 - Required/optional flags
@@ -152,10 +165,12 @@ end
 ## Database Design
 
 ### Custom Types
+
 - `ParameterList`: Handles JSONB array storage for parameters
 - Automatic type casting between forms and database
 
 ### Migrations
+
 - Proper foreign key constraints
 - Cascade deletes for data integrity
 - Indexes on slug fields for performance
@@ -163,18 +178,22 @@ end
 ## Challenges & Solutions
 
 ### PostgreSQL Array Types
+
 **Problem**: Form data as `text[]` vs database `jsonb[]`
 **Solution**: Custom Ash type with proper casting
 
 ### Checkbox Handling
+
 **Problem**: HTML sends "on" instead of "true"
 **Solution**: Boolean conversion in parameter casting
 
 ### Multi-tenancy
+
 **Problem**: Ensuring data isolation
 **Solution**: Organisation context in LiveView assigns
 
 ### Personal Organisations
+
 **Problem**: Users invited via email didn't get personal orgs
 **Solution**: Auto-creation on first login in `LiveUserAuth`
 

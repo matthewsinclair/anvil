@@ -3,7 +3,7 @@ verblock: "24 Jul 2025:v0.1: matts - Initial version"
 stp_version: 2.0.0
 status: Completed
 created: 20250724
-completed: 20250724 
+completed: 20250724
 ---
 # ST0003: Organisations own projects
 

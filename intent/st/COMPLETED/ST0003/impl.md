@@ -200,6 +200,8 @@ end
 
 ### LiveView Integration
 
+**Note**: The organisation switcher currently triggers a page reload rather than updating the session directly. This is a temporary implementation that ensures context is properly updated across all LiveViews.
+
 #### Organisation Context Management
 ```elixir
 defmodule AnvilWeb.LiveUserAuth do
@@ -352,6 +354,8 @@ end
 ```
 
 ### Migration Implementation
+
+**Note**: The migration file has a typo in the filename (`add_orgainisations.exs` instead of `add_organisations.exs`). This is cosmetic only and doesn't affect functionality.
 
 ```elixir
 defmodule Anvil.Repo.Migrations.AddOrganisations do

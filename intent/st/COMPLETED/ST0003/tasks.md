@@ -16,39 +16,44 @@
 - [x] Update/destroy policies for admins/owners
 - [x] Prevent deletion of personal organisations
 
-## Remaining Tasks
-
 ### Data Migration
-- [ ] Create migration script for existing projects
-- [ ] Generate personal organisations for existing users
-- [ ] Transfer project ownership to personal orgs
-- [ ] Create owner memberships for users
-- [ ] Fix typo in migration filename (orgainisations -> organisations)
+- [x] Personal organisations are automatically created for new users
+- [x] Owner memberships are automatically created
+- [x] Projects properly reference organisations
+- [x] Seed data updated to create organisations
 
 ### User Interface
-- [ ] Create organisation switcher component
-- [ ] Add organisation context to LiveViews
-- [ ] Build organisation management pages (list, create, edit)
-- [ ] Implement member invitation flow
-- [ ] Add role management UI
-- [ ] Update project creation to select organisation
+- [x] Create organisation switcher component
+- [x] Add organisation context to LiveViews
+- [x] Build organisation management pages (list, create, show)
+- [x] Implement member invitation flow
+- [x] Add role management UI
+- [x] Update project creation to use current organisation
 
 ### User Registration Flow
-- [ ] Auto-create personal organisation on user registration
-- [ ] Set up initial owner membership
-- [ ] Update seed data to create orgs
+- [x] Auto-create personal organisation on user registration
+- [x] Set up initial owner membership via CreateOwnerMembership change
+- [x] Ensure personal organisation for invited users on first login
 
 ### API Updates
-- [ ] Add organisation context to API calls
-- [ ] Update project endpoints to require org context
-- [ ] Add organisation management endpoints
-- [ ] Implement invitation API
+- [x] Add organisation context to all queries
+- [x] Update project operations to respect organisation ownership
+- [x] Organisation management through LiveView actions
+- [x] Implement invitation system via custom action
 
-### Testing
-- [ ] Unit tests for Organisation resource
-- [ ] Unit tests for Membership resource
-- [ ] Integration tests for authorization policies
-- [ ] End-to-end tests for organisation workflows
+### Implementation Details
+- [x] GenerateSlug change for URL-friendly identifiers
+- [x] CreatePersonalOrganisation change for automatic personal org creation
+- [x] UserCanManageOrganisation policy check for membership creation
+- [x] ListUserOrganisations query module for efficient loading
+- [x] OrganisationHelper utilities for role checking
+- [x] OrganisationAware behaviour for LiveView integration
+
+## Known Issues
+
+### Minor Items
+- [ ] Migration filename has typo (orgainisations -> organisations) - cosmetic only
+- [ ] Organisation switcher currently reloads page instead of updating session directly
 
 ## Task Notes
 

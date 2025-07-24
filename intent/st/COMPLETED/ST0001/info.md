@@ -1,9 +1,9 @@
 ---
 verblock: "23 Jul 2025:v0.1: matts - Initial version"
 stp_version: 2.0.0
-status: In Progress
+status: Completed
 created: 20250723
-completed: 
+completed: 20250724
 ---
 # ST0001: Initial specification
 
