@@ -1,23 +1,32 @@
 ---
 verblock: "24 Jul 2025:v0.1: matts - Initial version"
 stp_version: 2.0.0
-status: In Progress
+status: Completed
 created: 20250724
-completed: 
+completed: 20250724 
 ---
 # ST0003: Organisations own projects
 
 ## Objective
 
-[Clear statement of what this steel thread aims to accomplish]
+Transform the project ownership model from individual user ownership to organisation-based ownership, enabling team collaboration and enterprise use cases while maintaining simplicity for individual users.
 
 ## Context
 
-[Background information and context for this steel thread, including why it's needed and how it fits into the larger project]
+The initial implementation of Anvil had projects directly owned by users. This worked for MVP but limited collaboration capabilities. By introducing organisations as the primary ownership entity, we enable:
+
+- Team collaboration on prompt management
+- Role-based access control (owner, admin, member)
+- Clear security boundaries for enterprise deployments
+- Billing and resource limits per organisation
+- Future multi-tenant capabilities
+
+Every user automatically gets a personal organisation to maintain the simple individual user experience while using the same underlying data model.
 
 ## Related Steel Threads
 
-- [List any related steel threads here]
+- ST0001: Initial specification - Provides the core domain models that this builds upon
+- ST0002: Basic Phoenix Web Shell Setup (Completed) - Provided the web foundation
 
 ## Context for LLM
 

@@ -5,123 +5,42 @@ verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 
 ## TODO
 
-Anvil is a prompt management system built with Elixir/Phoenix for managing LLM prompts. It uses Ash Framework for domain modeling, Phoenix LiveView for the UI, and Liquid templates (via Solid gem) for prompt templating.
+{{TODO}}
 
-## Current Status
-
-The MVP is complete with core functionality working. The system allows users to create projects, prompt sets, and prompts with dynamic parameters. Version management has been implemented with a read-only view and delete functionality.
-
-## Tech Stack
-
-- **Backend**: Elixir with Ash Framework 3.0
-- **Frontend**: Phoenix LiveView with retro-themed UI
-- **Database**: PostgreSQL with custom jsonb array types
-- **Auth**: phx_gen_auth with Ash integration
-- **Templates**: Liquid via Solid gem
-
-## Key Files and Their Purpose
-
-### Domain Layer
-
-- `/lib/anvil/projects.ex` - Projects domain with Project resource
-- `/lib/anvil/prompts.ex` - Prompts domain with PromptSet, Prompt, Version resources
-- `/lib/anvil/prompts/prompt.ex` - Core Prompt resource with parameter management
-- `/lib/anvil/types/parameter_list.ex` - Custom type for parameter storage
-
-### LiveView Layer
-
-- `/lib/anvil_web/live/prompt_set_live/show.ex` - Prompt set detail with inline version creation
-- `/lib/anvil_web/live/prompt_live/edit.ex` - Prompt editor with template validation
-- `/lib/anvil_web/live/version_live/show.ex` - Read-only version view with expandable prompts
-
-### Template System
-
-- `/lib/anvil/template/analyzer.ex` - Parses Liquid templates and validates parameters
-
-## Recent Work Completed
-
-### 1. Fixed Required Checkbox
-
-- Issue: HTML checkboxes send "on" but code expected "true"
-- Fix: Check for both values in transform_parameters/1
-
-### 2. Template Validation Feature
-
-- Added Validate button to prompt editor
-- Extracts {{variables}} from templates
-- Shows missing/unused/matched parameters
-- Auto-populate parameters from template
-
-### 3. Version Management
-
-- Created Version resource with snapshot storage
-- Inline version creation form (replaced modal)
-- Read-only version view with expandable prompts
-- Delete functionality with confirmation
-- Sorted versions by most recent first
-
-### 4. Critical Bug Fixes
-
-- PostgreSQL array type mismatch (jsonb[] vs text[])
-- Ash generic action issues (switched to normal create)
-- Filter syntax (use query: [filter: ...])
-
-## Known Issues and Pending Work
-
-### Immediate Tasks
-
-1. Version comparison UI - Show diff between versions
-2. Rollback functionality - Restore prompt set from version
-3. Search implementation - Basic name search at minimum
-4. Client library - Anvil.get/2 for consuming prompts
-
-### Technical Debt
-
-1. No test coverage yet
-2. No pagination on listing pages
-3. Error handling needs improvement
-4. Performance optimization needed
-
-### Future Features
-
-1. Bundle export/import for distribution
-2. Registry service for sharing
-3. Embedded mode for mounting in existing apps
-4. Analytics and A/B testing
-5. Advanced approval workflows
-
-## Common Commands
-
-```bash
-# Start development
-iex -S mix phx.server
-
-# Run migrations
-mix ash.codegen
-mix ecto.migrate
-
-# Seed database
-mix run priv/repo/seeds.exs
-
-# Compile and format
-mix compile && mix format
-```
-
-## Important Context
-
-1. Always use `query: [filter: ...]` not `filter:` directly with Ash
-2. HTML checkboxes send "on" when checked, not "true"
-3. Use normal CRUD actions, not generic actions unless necessary
-4. The unit of versioning is the prompt set, not individual prompts
-5. Template variables use {{name}} syntax (Liquid)
-
-## User Preferences
-
-- No modals - use inline forms instead
-- Retro ASCII theme with monospace fonts
-- British English spelling
-- No Claude comments in git commits
-- Functional Elixir style (with, pattern matching, pipes)
+╭────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ > Ok, we need to take stock now and do the following hygiene steel threads before we go any further:                           │
+│                                                                                                                                │
+│   1. We need to update all of the docs for steel threads 1 and 3. These are not complete, but they have both had a lot of      │
+│   work done on them and they need to be brought up to as-bullt status. There is a dedicated steel thread for this              │
+│   documentation update: ST0005.                                                                                                │
+│                                                                                                                                │
+│   2. As part of #1, we need to update the Technical Product Design document. The TPD here is just a template. The model for    │
+│   this document is here: ../MeetZaya/intent/eng/tpd?**/*. In particular, note the multi-file structure with linked markdown    │
+│   files. Also for ST0005.                                                                                                      │
+│                                                                                                                                │
+│   3. We have written a lot of code with zero tests. We need to write comprehensive tests for both lib/anvil anmd               │
+│   lib/anvil_web. We should use ../MeetZaya/test/** as a guide for the right way to test things here. We need to be             │
+│   espescially conscious of tests for the Ash Resources. I am worried that we have put business logic into the Live Views that  │
+│   really should be behind a code interface in an Ash Resource. As we write the tests, we should be on the lookout for that.    │
+│   I have created a new steel thread for this work: ST0006.                                                                     │
+│                                                                                                                                │
+│   4. ST0004 is about "Anvil Peering". This is also a big piece of work that is in two parts. The first part is import/export   │
+│   of Project from one Anvil instance to another. And the second part is the ability to "push" a config form an Anvil           │
+│   management instance (like a running instance of this project) into a "client user app" of Anvil which just has the           │
+│   client-side shim that allows Anvil configs to be injected into it.                                                           │
+│                                                                                                                                │
+│   Please reflect on these 4 points.                                                                                            │
+│                                                                                                                                │
+│   THIS IS SOLELY A DOCUMENTATION TASK. DO NOT WRITE OR CHANGE THE CODE AT ALL.                                                 │
+│                                                                                                                                │
+│   There are two phases of work here:                                                                                           │
+│                                                                                                                                │
+│   Phase 1: Update the relevant steel threads (ST000{1,3}) with the current as-built state of THIS project.                     │
+│   Phase 2: Update the other steel threads (ST000{4,5,6}) with the plan for the new work.                                       │
+│                                                                                                                                │
+│   Please process this, review the state of the system, and then show me a detailed to get this work done, then wait for        │
+│   instructions.                                                                                                                │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 
 ## Notes
 

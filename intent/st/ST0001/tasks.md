@@ -1,153 +1,104 @@
 # Tasks - ST0001: Anvil Prompt Management System
 
-## Phase 1: Core Infrastructure (Foundation)
+## Completed Work
 
-### Domain Models & Database
+### Core Infrastructure
+- [x] Ash domains for Projects, Prompts, Organisations, and Accounts
+- [x] Project, PromptSet, Prompt, and Version resources with relationships
+- [x] Authentication with phx_gen_auth and magic links
+- [x] Multi-tenancy with Organisations (see ST0003)
+- [x] Role-based access control (owner/admin/member)
+- [x] Database migrations and seed data
+- [x] Custom PostgreSQL types for parameter storage
 
-- [x] Create Ash domains for Projects, Prompts, and Accounts
-- [x] Define Project resource with relationships
-- [x] Define PromptSet resource with versioning attributes
-- [x] Define Prompt resource with template and parameters
-- [x] Create Version resource for tracking changes
-- [x] Set up database migrations
-- [x] Add seed data for development
+### Web Application
+- [x] Phoenix LiveView UI for all CRUD operations
+- [x] Project listing and creation
+- [x] Prompt set editor with dynamic parameters
+- [x] Template validation with Liquid syntax
+- [x] Parameter auto-extraction from templates
+- [x] Breadcrumb navigation
+- [x] Command palette (Cmd+K)
+- [x] Organisation switcher
+- [x] Dashboard, Account, Settings, Help pages
 
-### Authentication & Authorisation
+### Template System
+- [x] Solid (Liquid) integration
+- [x] Template analyzer for variable extraction
+- [x] Parameter validation UI
 
-- [x] Implement phx_gen_auth for user authentication
-- [ ] Define Anvil.Auth behaviour
-- [x] Implement Ash policies for resources (basic auth checks)
-- [ ] Create roles (admin, context_engineer, viewer)
-- [ ] Add audit logging for all operations
+## Remaining Tasks
 
-## Phase 2: Web Application (Management UI)
+### Version Management System
+- [ ] Implement semantic versioning with major/minor/patch
+- [ ] Create version comparison UI showing diffs
+- [ ] Build rollback functionality to restore from versions
+- [ ] Add version resolution for dependencies
+- [ ] Implement version conflict detection
 
-### Phoenix Application Setup
+### Client Library (Anvil SDK)
+- [ ] Create Anvil.get/2 and Anvil.get!/2 functions
+- [ ] Build address parser for "project/prompt_set@version" syntax
+- [ ] Implement local caching with TTL
+- [ ] Add PubSub for live updates
+- [ ] Create mix tasks (anvil.init, anvil.pull, anvil.push)
 
-- [x] Create Phoenix LiveView controllers for prompt management
-- [x] Build project listing and creation UI
-- [x] Create prompt set editor with preview
-- [ ] Implement version comparison view
-- [x] Add parameter definition interface
-- [x] Create template validation UI
+### Bundle & Distribution System
+- [ ] Design bundle format (thin packages + lock files)
+- [ ] Implement export functionality for prompt sets
+- [ ] Create import with validation and conflict resolution
+- [ ] Build dependency resolver
+- [ ] Add manifest generation
 
-### Embedded Mode Support
+### Registry Service
+- [ ] Create central registry for sharing prompts
+- [ ] Implement publish workflow with validation
+- [ ] Build search and discovery features
+- [ ] Add versioned API for registry access
+- [ ] Create organisation-scoped registries
 
-- [ ] Create mountable route module for /anvil
-- [ ] Implement auth delegation to host app
-- [ ] Add configuration for edit modes
-- [ ] Build review workflow UI
+### Deployment Modes
+- [ ] Implement "live" mode with real-time updates
+- [ ] Create "review" mode with approval workflow
+- [ ] Build "locked" mode for production stability
+- [ ] Add mode configuration per environment
 - [ ] Create approval queue interface
 
-### Additional UI Features (Completed)
+### Embedded Mode Support
+- [ ] Create mountable route module for /anvil
+- [ ] Implement auth delegation to host app
+- [ ] Build configuration API for host apps
+- [ ] Add theme customisation support
 
-- [x] Implement breadcrumb navigation component
-- [x] Create command palette with keyboard shortcuts (Cmd+K)
-- [x] Convert all pages to LiveViews for consistent experience
-- [x] Add global search/command functionality
-- [x] Create Dashboard, Account, Settings, and Help pages
-- [x] Implement parameter validation and auto-extraction
-- [x] Add visual validation feedback for templates
-- [x] Fix PostgreSQL array type handling for parameters
-- [x] Create custom Ash type for parameter lists
+### Advanced Features
+- [ ] Analytics and usage tracking
+- [ ] Performance metrics and monitoring
+- [ ] Token usage and cost analysis
+- [ ] A/B testing framework
+- [ ] Telemetry integration
+- [ ] Audit logging for all operations
+- [ ] Search functionality across all resources
 
-## Phase 3: Client Library (Consumer SDK)
+### Security & Performance
+- [ ] API rate limiting
+- [ ] Multi-tier caching strategy
+- [ ] Horizontal scaling support
+- [ ] Backup and recovery procedures
+- [ ] Security audit and penetration testing
 
-### Core Client Functions
+## Implementation Priority
 
-- [ ] Implement Anvil.get/2 and Anvil.get!/2
-- [ ] Create address parser (Anvil.Resolver)
-- [ ] Build local cache (Anvil.Cache)
-- [ ] Implement registry client (Anvil.Registry)
-- [x] Add template renderer (Anvil.Template) - using Solid
+1. **Version Management** - Critical for the "package manager" concept
+2. **Client Library** - Essential for consuming prompts in applications
+3. **Bundle System** - Enables distribution and sharing
+4. **Registry Service** - Creates the ecosystem for prompt sharing
+5. **Advanced Features** - Nice-to-have enhancements
 
-### Mix Tasks
+## Technical Debt to Address
 
-- [ ] Create mix anvil.init task
-- [ ] Implement mix anvil.pull task
-- [ ] Add mix anvil.push task
-- [ ] Create mix anvil.list task
-- [ ] Build mix anvil.search task
-
-## Phase 4: Distribution & Updates
-
-### Publishing System
-
-- [ ] Create publish workflow with version validation
-- [ ] Implement dependency resolution
-- [ ] Build manifest generation
-- [ ] Add lock file support
-- [ ] Create bundle packaging
-
-### Live Updates
-
-- [ ] Implement PubSub handlers
-- [ ] Create update notification system
-- [ ] Add cache invalidation logic
-- [ ] Build cluster synchronisation
-- [ ] Implement fallback mechanisms
-
-## Phase 5: Advanced Features
-
-### Template Engine
-
-- [ ] Integrate Solid (Liquid) templating
-- [ ] Create safe filter whitelist
-- [ ] Add parameter type validation
-- [ ] Implement template composition
-- [ ] Build error handling
-
-### Analytics & Monitoring
-
-- [ ] Add usage tracking
-- [ ] Create performance metrics
-- [ ] Build cost analysis (token counting)
-- [ ] Implement A/B test framework
-- [ ] Add telemetry integration
-
-## Task Notes
-
-**Priority Order**:
-
-1. Start with Phase 1 to establish data models
-2. Build minimal web UI for testing (Phase 2)
-3. Create client library for integration (Phase 3)
-4. Add distribution once core works (Phase 4)
-5. Enhanced features can be added incrementally (Phase 5)
-
-**Testing Strategy**:
-
-- Unit tests for all Ash resources
-- Integration tests for client library
-- LiveView tests for UI components
-- End-to-end tests for workflows
-
-**Documentation Needs**:
-
-- API documentation for client library
-- Deployment guide for service
-- Context Engineer user guide
-- Developer integration guide
-
-## Dependencies
-
-**Phase Dependencies**:
-
-- Phase 2 depends on Phase 1 completion
-- Phase 3 can start after Phase 1 core models
-- Phase 4 requires Phase 2 & 3 basics
-- Phase 5 can be done in parallel after Phase 3
-
-**External Dependencies**:
-
-- Ash Framework 3.5+ (already in project)
-- Solid templating library (needs adding)
-- Phoenix PubSub (already available)
-- PostgreSQL with JSONB support
-
-**Resource Requirements**:
-
-- Development database instance
-- Redis for caching (optional for MVP)
-- File storage for prompt versions
-- Test environment with multiple nodes
+- [ ] Extract business logic from LiveViews to Ash actions
+- [ ] Add comprehensive test coverage (see ST0006)
+- [ ] Implement pagination on listing pages
+- [ ] Improve error handling and user feedback
+- [ ] Add database indexes for performance
+- [ ] Document API endpoints and client usage
