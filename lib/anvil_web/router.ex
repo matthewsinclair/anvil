@@ -61,6 +61,10 @@ defmodule AnvilWeb.Router do
       live "/account", AccountLive, :index
       live "/settings", SettingsLive, :index
 
+      # Organisation routes
+      live "/organisations", OrganisationLive.Index, :index
+      live "/organisations/:id", OrganisationLive.Show, :show
+
       # Prompt management routes
       live "/projects", ProjectLive.Index, :index
       live "/projects/new", ProjectLive.New, :new

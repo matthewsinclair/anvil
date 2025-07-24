@@ -37,7 +37,7 @@ defmodule AnvilWeb.Components.Common.OrganisationSwitcherComponent do
         <% end %>
         <div class="divider my-1"></div>
         <li>
-          <.link navigate={~p"/app"} class="font-medium">
+          <.link navigate={~p"/organisations"} class="font-medium">
             Manage Organisations
           </.link>
         </li>

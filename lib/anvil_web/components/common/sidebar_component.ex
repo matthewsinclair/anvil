@@ -45,6 +45,14 @@ defmodule AnvilWeb.Components.Common.SidebarComponent do
             </li>
             <li>
               <.nav_item
+                href={~p"/organisations"}
+                current_path={@current_path}
+                icon={retro_icon(:team)}
+                label="Organisations"
+              />
+            </li>
+            <li>
+              <.nav_item
                 href={~p"/projects"}
                 current_path={@current_path}
                 icon={retro_icon(:project)}
@@ -121,7 +129,9 @@ defmodule AnvilWeb.Components.Common.SidebarComponent do
     active =
       assigns.href == assigns.current_path ||
         (assigns.href == "/app" && assigns.current_path == "/dashboard") ||
-        (assigns.href == "/projects" && String.starts_with?(assigns.current_path, "/projects"))
+        (assigns.href == "/projects" && String.starts_with?(assigns.current_path, "/projects")) ||
+        (assigns.href == "/organisations" &&
+           String.starts_with?(assigns.current_path, "/organisations"))
 
     assigns = assign(assigns, :active, active)
 
