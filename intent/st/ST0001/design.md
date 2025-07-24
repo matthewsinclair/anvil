@@ -157,6 +157,38 @@ config :anvil,
 - **Considered**: IFTTT-style automation from the start
 - **Rejected**: Scope creep; can be added later if needed
 
+## Implementation Decisions Made
+
+### Template Syntax
+
+- **Decision**: Used Liquid syntax via Solid gem
+- **Rationale**: Familiar syntax with extensive documentation and community support
+- **Implementation**: Integrated Solid Ruby gem with custom Anvil.Template.Analyzer for variable extraction
+
+### Authentication Model
+
+- **Decision**: Used phx_gen_auth for MVP instead of custom Anvil.Auth behaviour
+- **Rationale**: Faster to implement, well-tested, can be replaced with custom auth later for embedded mode
+- **Implementation**: Standard phx_gen_auth with LiveView session management
+
+### Parameter Storage
+
+- **Decision**: Custom Ash type for PostgreSQL jsonb[] arrays
+- **Rationale**: Allows flexible parameter metadata while maintaining type safety
+- **Implementation**: Anvil.Types.ParameterList handles conversion between forms and database
+
+### UI Framework
+
+- **Decision**: Phoenix LiveView with DaisyUI components and retro theme
+- **Rationale**: LiveView provides real-time updates without JavaScript complexity
+- **Implementation**: All pages converted to LiveView with command palette integration
+
+### Slug Generation
+
+- **Decision**: Atomic database operations using PostgreSQL fragments
+- **Rationale**: Ensures consistency and prevents race conditions
+- **Implementation**: Custom Ash changes with atomic methods
+
 ## Open Questions & Design Points
 
 ### Registry Implementation
@@ -168,14 +200,14 @@ config :anvil,
   - Use S3/CDN for simple file hosting
 - **Recommendation**: Start with simple S3/CDN approach, evolve as needed
 
-### Template Syntax
+### Template Filters for LLMs
 
-- **Question**: Liquid syntax vs custom DSL for prompt templates?
+- **Question**: What custom Liquid filters should we add for LLM-specific needs?
 - **Considerations**:
-  - Liquid is familiar and well-documented
-  - Custom DSL could be more LLM-specific
-  - Need to support conditionals and loops
-- **Recommendation**: Use Liquid (via Solid) for MVP, extensible with custom filters
+  - Token counting filters
+  - Format conversion filters (markdown, JSON, etc.)
+  - Context window management
+- **Recommendation**: Start with basic filters, add based on user feedback
 
 ### Caching Strategy
 
@@ -184,7 +216,7 @@ config :anvil,
   - ETS: Fast but not distributed
   - Redis: Distributed but additional dependency
   - Hybrid: Complex but flexible
-- **Recommendation**: Start with ETS, add Redis when scaling requires it
+- **Status**: Not yet implemented - will start with ETS when building client library
 
 ### Version Aliases
 

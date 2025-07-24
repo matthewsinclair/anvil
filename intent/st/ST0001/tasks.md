@@ -8,12 +8,13 @@
 - [x] Define Project resource with relationships
 - [x] Define PromptSet resource with versioning attributes
 - [x] Define Prompt resource with template and parameters
-- [ ] Create Version resource for tracking changes
+- [x] Create Version resource for tracking changes
 - [x] Set up database migrations
-- [ ] Add seed data for development
+- [x] Add seed data for development
 
 ### Authentication & Authorisation
 
+- [x] Implement phx_gen_auth for user authentication
 - [ ] Define Anvil.Auth behaviour
 - [x] Implement Ash policies for resources (basic auth checks)
 - [ ] Create roles (admin, context_engineer, viewer)

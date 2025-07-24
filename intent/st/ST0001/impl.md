@@ -475,24 +475,28 @@ end
 ## Key Implementation Features
 
 ### 1. Dynamic Parameter Management
+
 - Add/remove parameters dynamically through UI
 - Type selection (string, number, boolean)
 - Required/optional flags
 - Real-time validation against template variables
 
 ### 2. Template Validation System
+
 - Extracts variables from Liquid templates using regex
 - Compares against defined parameters
 - Visual feedback for missing, unused, and matched parameters
 - Auto-population of missing parameters
 
 ### 3. Command Palette Navigation
+
 - Global keyboard shortcut (Cmd+K)
 - Searchable command list
 - Navigation to any page in the application
 - Integrated with all LiveViews
 
 ### 4. Atomic Database Operations
+
 - Custom Ash changes for atomic slug generation
 - PostgreSQL expression-based updates
 - Maintains database consistency
@@ -500,6 +504,7 @@ end
 ## Current Implementation Status Summary
 
 ### Completed Features
+
 1. **Core Domain Models** - All resources defined with Ash Framework
 2. **Database Layer** - PostgreSQL with proper migrations and constraints
 3. **Web UI** - Full LiveView implementation for all CRUD operations
@@ -510,6 +515,7 @@ end
 8. **Custom Types** - PostgreSQL array handling for complex data structures
 
 ### Pending Features
+
 1. **Version Management** - Track and manage prompt versions
 2. **Bundle Export/Import** - Package and distribute prompt sets
 3. **Client Library** - SDK for consuming prompts in applications
@@ -520,30 +526,160 @@ end
 ## Implementation Challenges Encountered
 
 ### 1. PostgreSQL Array Type Handling
+
 **Problem**: Form data comes as `text[]` but PostgreSQL expects `jsonb[]` for parameter storage.
 
 **Solution**: Created custom Ash type (`Anvil.Types.ParameterList`) to handle conversion between form representation and database storage.
 
 ### 2. Atomic Operations Requirement
+
 **Problem**: Ash changes must be atomic for database operations, but some computations seemed too complex.
 
 **Solution**: Used PostgreSQL fragment expressions within Ash.Expr to maintain atomicity while performing string transformations.
 
 ### 3. Checkbox Value Handling
+
 **Problem**: HTML checkboxes send "on" when checked, but code expected "true".
 
 **Solution**: Updated parameter parsing to handle both "on" and "true" values for boolean fields.
 
 ### 4. Command Palette Integration
+
 **Problem**: Adding command palette to all LiveViews caused duplicate component ID errors.
 
 **Solution**: Consolidated live sessions and created a shared CommandPaletteHandler behaviour.
+
+## Additional Implementation Details
+
+### Version Resource Implementation
+
+```elixir
+defmodule Anvil.Prompts.Version do
+  use Ash.Resource,
+    domain: Anvil.Prompts,
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
+
+  postgres do
+    table "versions"
+    repo Anvil.Repo
+
+    references do
+      reference :prompt_set, on_delete: :delete
+    end
+  end
+
+  attributes do
+    uuid_primary_key :id
+    attribute :version_number, :string, allow_nil?: false
+    attribute :changelog, :text
+    attribute :published_at, :utc_datetime_usec
+    attribute :metadata, :map, default: %{}
+    create_timestamp :created_at
+    update_timestamp :updated_at
+  end
+
+  relationships do
+    belongs_to :prompt_set, Anvil.Prompts.PromptSet do
+      allow_nil? false
+      attribute_writable? true
+    end
+  end
+
+  changes do
+    change Anvil.Prompts.Changes.GenerateVersionNumber
+  end
+
+  policies do
+    policy always() do
+      authorize_if expr(prompt_set.project.user_id == ^actor(:id))
+    end
+  end
+end
+```
+
+### Seed Data Structure
+
+```elixir
+defmodule Anvil.Seeds do
+  def run do
+    # Create test user
+    {:ok, user} = Anvil.Accounts.register_user(%{
+      email: "test@example.com",
+      password: "password123456"
+    })
+
+    # Create sample project
+    {:ok, project} = Anvil.Projects.create_project!(%{
+      name: "Sample Project",
+      description: "A sample project for testing",
+      user_id: user.id
+    })
+
+    # Create prompt sets with prompts
+    {:ok, prompt_set} = Anvil.Prompts.create_prompt_set!(%{
+      name: "Customer Support Prompts",
+      description: "Standard customer support responses",
+      project_id: project.id
+    })
+
+    # Create sample prompts
+    Anvil.Prompts.create_prompt!(%{
+      name: "Welcome Message",
+      template: "Hello {{ customer_name }}! Welcome to {{ company_name }}.",
+      parameters: [
+        %{"name" => "customer_name", "type" => "string", "required" => true},
+        %{"name" => "company_name", "type" => "string", "required" => true}
+      ],
+      prompt_set_id: prompt_set.id
+    })
+  end
+end
+```
+
+### Authentication Integration
+
+```elixir
+defmodule AnvilWeb.LiveUserAuth do
+  import Phoenix.Component
+  use AnvilWeb, :verified_routes
+
+  def on_mount(:live_user_required, _params, session, socket) do
+    socket = assign_current_user(socket, session)
+
+    if socket.assigns.current_user do
+      {:cont, socket}
+    else
+      socket =
+        socket
+        |> Phoenix.LiveView.put_flash(:error, "You must log in to access this page.")
+        |> Phoenix.LiveView.redirect(to: ~p"/users/log_in")
+
+      {:halt, socket}
+    end
+  end
+
+  defp assign_current_user(socket, session) do
+    case session do
+      %{"user_token" => user_token} ->
+        assign_new(socket, :current_user, fn ->
+          Anvil.Accounts.get_user_by_session_token(user_token)
+        end)
+
+      %{} ->
+        assign_new(socket, :current_user, fn -> nil end)
+    end
+  end
+end
+```
 
 ## Next Steps
 
 The foundation is solid with core functionality working. The next major features to implement are:
 
-1. **Version Management** - Critical for tracking prompt changes
+1. **Advanced Version Management** - Version comparison and rollback features
 2. **Bundle Export/Import** - Enable prompt distribution
 3. **Client Library** - Allow applications to consume prompts
 4. **Search Functionality** - Improve navigation at scale
+5. **Embedded Mode** - Enable integration into existing Phoenix apps
+6. **Role-Based Access Control** - Implement proper permission system
