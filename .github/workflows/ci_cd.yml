@@ -63,7 +63,7 @@ jobs:
           if [ -f .tool-versions ]; then
             echo "version=$(grep -h erlang .tool-versions | awk '{ print $2 }')" >> $GITHUB_OUTPUT
           else
-            echo "version=27.3.4" >> $GITHUB_OUTPUT
+            echo "version=28.0.2" >> $GITHUB_OUTPUT
           fi
 
       - name: Setup Beam

@@ -117,7 +117,7 @@ defmodule Anvil.MixProject do
       {:earmark, "~> 1.5.0-pre1"},
 
       # Liquid templating
-      {:solid, "~> 0.15"},
+      {:solid, "~> 1.0"},
 
       # Logging
       {:logger_file_backend, "~> 0.0.14"},
