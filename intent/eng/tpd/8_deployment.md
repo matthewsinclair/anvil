@@ -306,65 +306,123 @@ volumes:
 
 ## CI/CD Pipeline
 
-### GitHub Actions
+### Current Status ✅ OPERATIONAL
+
+**Recent Fix Applied**: Updated CI/CD pipeline to use Erlang/OTP 28.0.2 matching local environment, resolving Ash DSL formatting inconsistencies between local and CI environments.
+
+**Pipeline Features**:
+- Dual-mode testing: Unit tests (fast) + Integration tests (comprehensive)
+- Environment version detection with fallbacks
+- Comprehensive caching strategy for dependencies and builds
+- Quality checks: formatting, static analysis, comprehensive testing
+
+### GitHub Actions (Current Implementation)
 
 ```yaml
-# .github/workflows/deploy.yml
-name: Deploy
+# .github/workflows/ci_cd.yml
+name: anvil
 
 on:
+  pull_request:
+    branches: [main]
   push:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CACHE_VERSION: 1
+  MIX_ENV: test
+  TOKEN_SIGNING_SECRET: ${{ secrets.TOKEN_SIGNING_SECRET }}
+  ANVIL_CONFIG_PATH: .
+  ANVIL_CONFIG_FILE: config.json
+
 jobs:
   test:
+    name: Test and Quality Checks
     runs-on: ubuntu-latest
+    timeout-minutes: 25
+
     services:
       postgres:
-        image: postgres:14
+        image: postgres:17-alpine
         env:
           POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: anvil_test
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-    
+        ports:
+          - 5432:5432
+
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Setup Elixir
-      uses: erlef/setup-beam@v1
-      with:
-        elixir-version: '1.15'
-        otp-version: '26'
-    
-    - name: Run tests
-      env:
-        DATABASE_URL: postgres://postgres:postgres@localhost/anvil_test
-      run: |
-        mix deps.get
-        mix test
-    
-  deploy:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    
-    steps:
-    - uses: actions/checkout@v3
-    
-    - name: Build and push Docker image
-      env:
-        DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
-      run: |
-        docker build -t $DOCKER_REGISTRY/anvil:$GITHUB_SHA .
-        docker push $DOCKER_REGISTRY/anvil:$GITHUB_SHA
-    
-    - name: Deploy to production
-      run: |
-        # Deploy script (kubectl, fly.io, etc.)
-        ./deploy/production.sh $GITHUB_SHA
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Determine Elixir version
+        id: elixir_version
+        run: |
+          if [ -f .tool-versions ]; then
+            echo "version=$(grep -h elixir .tool-versions | awk '{ print $2 }' | awk -F - '{print $1}')" >> $GITHUB_OUTPUT
+          else
+            echo "version=1.18.4" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Determine OTP version
+        id: otp_version
+        run: |
+          if [ -f .tool-versions ]; then
+            echo "version=$(grep -h erlang .tool-versions | awk '{ print $2 }')" >> $GITHUB_OUTPUT
+          else
+            echo "version=28.0.2" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Beam
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ steps.otp_version.outputs.version }}
+          elixir-version: ${{ steps.elixir_version.outputs.version }}
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-${{ steps.elixir_version.outputs.version }}-${{ steps.otp_version.outputs.version }}-deps-v${{ env.CACHE_VERSION }}-${{ hashFiles('mix.lock') }}
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Compile application
+        run: mix compile --warnings-as-errors --force
+
+      - name: Check code formatting
+        run: mix format --check-formatted
+
+      - name: Run static analysis
+        run: mix credo --only error
+
+      - name: Run unit tests
+        run: mix test
+
+      - name: Run integration tests
+        env:
+          TEST_ANVIL_INTEGRATIONS: true
+        run: mix test
+
+  # Deployment jobs would be added here
+  # deploy:
+  #   needs: test
+  #   runs-on: ubuntu-latest
+  #   if: github.ref == 'refs/heads/main'
+  #   steps:
+  #     # Add deployment steps as needed
 ```
 
 ## Database Management

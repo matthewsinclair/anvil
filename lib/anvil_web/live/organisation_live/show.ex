@@ -20,6 +20,7 @@ defmodule AnvilWeb.OrganisationLive.Show do
     {:ok,
      socket
      |> assign(:page_title, organisation.name)
+     |> assign(:current_path, "/organisations")
      |> assign(:organisation, organisation)
      |> assign(:user_membership, user_membership)
      |> assign(:can_manage_members, can_manage_members?(user_membership))

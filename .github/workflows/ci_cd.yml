@@ -115,7 +115,15 @@ jobs:
         run: mix compile --warnings-as-errors --force
 
       - name: Check code formatting
-        run: mix format --check-formatted
+        run: |
+          # Format code and check if there are any changes
+          mix format
+          if ! git diff --exit-code; then
+            echo "Code formatting issues found. Please run 'mix format' locally and commit the changes."
+            echo "The following files were reformatted:"
+            git diff --name-only
+            exit 1
+          fi
 
       - name: Run static analysis (Credo)
         run: mix credo --only error

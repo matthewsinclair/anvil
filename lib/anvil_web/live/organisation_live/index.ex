@@ -27,6 +27,7 @@ defmodule AnvilWeb.OrganisationLive.Index do
     {:ok,
      socket
      |> assign(:page_title, "Organisations")
+     |> assign(:current_path, "/organisations")
      |> assign(:organisations, organisations)
      |> assign(:show_new_form, false)
      |> assign(:form, build_form())
