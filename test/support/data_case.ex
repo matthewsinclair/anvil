@@ -25,10 +25,7 @@ defmodule Anvil.DataCase do
       import Ecto.Query
       import Anvil.DataCase
 
-      # Import Ash test helpers
-      import Ash.Test.Helpers
-
-      # Import domain generators when they exist
+      # Import domain generators
       import Anvil.Accounts.Generator
       import Anvil.Organisations.Generator
       import Anvil.Projects.Generator
@@ -64,5 +61,64 @@ defmodule Anvil.DataCase do
         opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
       end)
     end)
+  end
+
+  @doc """
+  Sets up ETS tables for Ash resources before each test.
+  Cleans up ETS tables after each test to ensure isolation.
+  """
+  def setup_ets_tables(_tags) do
+    # Clear existing ETS data for clean test isolation
+    clear_ets_tables()
+
+    # Ensure ETS tables exist for all ETS-backed resources
+    ensure_ets_tables()
+
+    # Clean up after test
+    on_exit(fn -> clear_ets_tables() end)
+  end
+
+  defp ensure_ets_tables do
+    # List all domains that might have ETS-backed resources
+    domains = [Anvil.Accounts, Anvil.Organisations, Anvil.Projects, Anvil.Prompts]
+
+    for domain <- domains do
+      resources = Ash.Domain.Info.resources(domain)
+
+      for resource <- resources do
+        data_layer = Ash.Resource.Info.data_layer(resource)
+
+        if data_layer == Ash.DataLayer.Ets do
+          # Ensure the ETS table exists by attempting a simple read
+          # This will create the table if it doesn't exist
+          try do
+            Ash.read(resource, authorize?: false)
+          rescue
+            _ -> :ok
+          end
+        end
+      end
+    end
+  end
+
+  defp clear_ets_tables do
+    domains = [Anvil.Accounts, Anvil.Organisations, Anvil.Projects, Anvil.Prompts]
+
+    for domain <- domains do
+      resources = Ash.Domain.Info.resources(domain)
+
+      for resource <- resources do
+        data_layer = Ash.Resource.Info.data_layer(resource)
+
+        if data_layer == Ash.DataLayer.Ets do
+          # Clear all data from ETS table by deleting all records
+          try do
+            Ash.bulk_destroy(resource, :destroy, %{}, authorize?: false, return_errors?: false)
+          rescue
+            _ -> :ok
+          end
+        end
+      end
+    end
   end
 end

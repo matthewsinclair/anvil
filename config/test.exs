@@ -2,7 +2,37 @@ import Config
 config :anvil, Oban, testing: :manual
 config :anvil, token_signing_secret: "haIVOv7bN0CFlsVKoaQ4MWVsQW0Liy7e"
 config :bcrypt_elixir, log_rounds: 1
-config :ash, policies: [show_policy_breakdowns?: true]
+
+# Ash configuration for testing
+config :ash,
+  policies: [
+    show_policy_breakdowns?: true,
+    log_policy_breakdowns?: :error
+  ],
+  disable_async?: true
+
+config :spark, :formatter,
+  remove_parens?: true,
+  "Ash.Resource": [
+    section_order: [
+      :postgres,
+      :authentication,
+      :resource,
+      :code_interface,
+      :actions,
+      :policies,
+      :pub_sub,
+      :preparations,
+      :changes,
+      :validations,
+      :multitenancy,
+      :attributes,
+      :relationships,
+      :calculations,
+      :aggregates,
+      :identities
+    ]
+  ]
 
 # Configure your database
 #
