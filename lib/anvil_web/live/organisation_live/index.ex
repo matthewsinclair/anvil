@@ -80,6 +80,20 @@ defmodule AnvilWeb.OrganisationLive.Index do
             {:noreply, put_flash(socket, :error, "Failed to create organisation membership")}
         end
 
+      {:error, %{errors: errors}} ->
+        error_message =
+          errors
+          |> Enum.map(fn error ->
+            case error do
+              %{field: :slug} -> "Organisation name already taken"
+              %{field: :name} -> "Organisation name is required"
+              _ -> "Failed to create organisation"
+            end
+          end)
+          |> Enum.join(", ")
+
+        {:noreply, put_flash(socket, :error, error_message)}
+
       {:error, _} ->
         {:noreply, put_flash(socket, :error, "Failed to create organisation")}
     end
@@ -154,16 +168,16 @@ defmodule AnvilWeb.OrganisationLive.Index do
             ></textarea>
           </div>
 
-          <div class="flex gap-2">
-            <button type="submit" class="btn btn-primary font-mono uppercase">
-              Create Organisation
-            </button>
+          <div class="flex items-center justify-between pt-6 border-t-2 border-base-300">
             <button
               type="button"
               phx-click="toggle_new_form"
               class="btn btn-ghost font-mono uppercase"
             >
               Cancel
+            </button>
+            <button type="submit" class="btn btn-primary font-mono uppercase">
+              Create Organisation
             </button>
           </div>
         </form>

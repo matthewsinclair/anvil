@@ -32,6 +32,11 @@ defmodule Anvil.Organisations.Organisation do
   end
 
   policies do
+    # Allow anyone to create an organisation
+    bypass action_type(:create) do
+      authorize_if always()
+    end
+
     bypass action_type(:read) do
       authorize_if expr(exists(memberships, user_id == ^actor(:id)))
     end

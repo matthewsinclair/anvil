@@ -26,9 +26,16 @@ defmodule Anvil.Accounts.Changes.CreatePersonalOrganisation do
   end
 
   defp create_personal_organisation(user) do
+    # Extract username from email for a more personalized name
+    username =
+      user.email
+      |> to_string()
+      |> String.split("@")
+      |> List.first()
+
     Anvil.Organisations.create_organisation(
       %{
-        name: "Personal",
+        name: "#{username}'s Personal",
         description: "Personal organisation for #{user.email}",
         personal?: true
       },

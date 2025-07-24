@@ -3,7 +3,6 @@ defmodule AnvilWeb.OrganisationLive.Show do
   use AnvilWeb.Live.CommandPaletteHandler
 
   alias Anvil.Organisations
-  alias Anvil.Accounts
 
   on_mount {AnvilWeb.LiveUserAuth, :live_user_required}
 
@@ -51,18 +50,25 @@ defmodule AnvilWeb.OrganisationLive.Show do
     role = String.to_existing_atom(role)
 
     case invite_member(email, role, socket.assigns.organisation, socket.assigns.current_user) do
-      {:ok, _membership} ->
+      {:ok, :invite_sent} ->
         memberships =
           load_memberships(socket.assigns.organisation.id, socket.assigns.current_user)
 
         {:noreply,
          socket
-         |> put_flash(:info, "Member invited successfully")
+         |> put_flash(:info, "Invitation sent successfully!")
          |> stream(:memberships, memberships, reset: true)
          |> assign(:show_invite_form, false)
          |> assign(:invite_form, build_invite_form())}
 
-      {:error, _} ->
+      {:error, :already_member} ->
+        {:noreply, put_flash(socket, :error, "User is already a member of this organisation")}
+
+      {:error, message} when is_binary(message) ->
+        {:noreply, put_flash(socket, :error, message)}
+
+      {:error, reason} ->
+        IO.inspect(reason, label: "Invite error")
         {:noreply, put_flash(socket, :error, "Failed to invite member")}
     end
   end
@@ -184,21 +190,20 @@ defmodule AnvilWeb.OrganisationLive.Show do
 
               <div class="flex items-center gap-4">
                 <!-- Role Badge/Selector -->
-                <div :if={
-                  @can_manage_members && membership.user_id != @current_user.id &&
-                    !@organisation.personal?
-                }>
-                  <select
-                    phx-change="update_role"
-                    phx-value-membership_id={membership.id}
-                    name="role"
-                    class="select select-bordered select-sm font-mono"
-                  >
+                <form
+                  :if={
+                    @can_manage_members && membership.user_id != @current_user.id &&
+                      !@organisation.personal?
+                  }
+                  phx-change="update_role"
+                  phx-value-membership_id={membership.id}
+                >
+                  <select name="role" class="select select-bordered select-sm font-mono">
                     <option value="member" selected={membership.role == :member}>Member</option>
                     <option value="admin" selected={membership.role == :admin}>Admin</option>
                     <option value="owner" selected={membership.role == :owner}>Owner</option>
                   </select>
-                </div>
+                </form>
                 <div
                   :if={
                     !@can_manage_members || membership.user_id == @current_user.id ||
@@ -253,11 +258,13 @@ defmodule AnvilWeb.OrganisationLive.Show do
   end
 
   defp get_user_membership(org_id, user) do
-    case Organisations.list_memberships(
-           query: [filter: [organisation_id: org_id, user_id: user.id]],
-           actor: user
-         ) do
-      {:ok, [membership | _]} -> membership
+    import Ash.Query
+
+    Anvil.Organisations.Membership
+    |> filter(organisation_id == ^org_id and user_id == ^user.id)
+    |> Ash.read_one(actor: user, authorize?: false)
+    |> case do
+      {:ok, membership} -> membership
       _ -> nil
     end
   end
@@ -268,54 +275,50 @@ defmodule AnvilWeb.OrganisationLive.Show do
   defp can_manage_members?(%{role: :member}), do: false
 
   defp load_memberships(org_id, actor) do
-    case Organisations.list_memberships(
-           query: [
-             filter: [organisation_id: org_id]
-           ],
-           actor: actor
-         ) do
-      {:ok, memberships} ->
-        # Load user data for each membership
-        memberships
-        |> Enum.map(fn membership ->
-          case Ash.load(membership, :user) do
-            {:ok, loaded} -> loaded
-            _ -> membership
-          end
-        end)
-        |> Enum.filter(fn m -> not is_nil(m.user) end)
+    import Ash.Query
 
-      _ ->
-        []
-    end
+    # Build a query to get memberships for this organisation
+    Anvil.Organisations.Membership
+    |> filter(organisation_id == ^org_id)
+    |> Ash.read!(actor: actor, authorize?: false)
+    |> Enum.map(fn membership ->
+      case Ash.load(membership, [:user], actor: actor, authorize?: false) do
+        {:ok, loaded} -> loaded
+        _ -> nil
+      end
+    end)
+    |> Enum.filter(& &1)
+  rescue
+    _ -> []
   end
 
   defp invite_member(email, role, organisation, actor) do
-    # First, find or create the user
-    case Ash.read_one(Accounts.User, filter: [email: email]) do
-      {:ok, user} ->
-        # Check if already a member
-        case Organisations.list_memberships(
-               query: [filter: [organisation_id: organisation.id, user_id: user.id]],
-               actor: actor
-             ) do
-          {:ok, []} ->
-            # Create membership
-            Organisations.create_membership(
-              %{
-                user_id: user.id,
-                organisation_id: organisation.id,
-                role: role
-              },
-              actor: actor
-            )
+    # Use the new invite_to_organisation action
+    action_input =
+      Anvil.Accounts.User
+      |> Ash.ActionInput.for_action(:invite_to_organisation, %{
+        email: email,
+        organisation_id: organisation.id,
+        role: role
+      })
 
-          {:ok, _} ->
-            {:error, :already_member}
+    case Ash.run_action(action_input, actor: actor) do
+      :ok ->
+        # Successfully invited
+        {:ok, :invite_sent}
+
+      {:error, message} when is_binary(message) ->
+        if String.contains?(message, "already a member") do
+          {:error, :already_member}
+        else
+          {:error, message}
         end
 
-      _ ->
-        {:error, :user_not_found}
+      {:error, %{errors: [%{message: message} | _]}} ->
+        {:error, message}
+
+      {:error, _} = error ->
+        error
     end
   end
 

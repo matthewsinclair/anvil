@@ -271,6 +271,25 @@ defmodule Anvil.Accounts.User do
       run AshAuthentication.Strategy.MagicLink.Request
     end
 
+    action :invite_to_organisation do
+      description "Invite a user to an organisation by email. Creates user if they don't exist."
+
+      argument :email, :ci_string do
+        allow_nil? false
+      end
+
+      argument :organisation_id, :uuid do
+        allow_nil? false
+      end
+
+      argument :role, :atom do
+        constraints one_of: [:owner, :admin, :member]
+        default :member
+      end
+
+      run Anvil.Accounts.Actions.InviteToOrganisation
+    end
+
     read :sign_in_with_api_key do
       argument :api_key, :string, allow_nil?: false
       prepare AshAuthentication.Strategy.ApiKey.SignInPreparation
@@ -280,6 +299,10 @@ defmodule Anvil.Accounts.User do
   policies do
     bypass AshAuthentication.Checks.AshAuthenticationInteraction do
       authorize_if always()
+    end
+
+    bypass action(:invite_to_organisation) do
+      authorize_if actor_present()
     end
 
     policy always() do

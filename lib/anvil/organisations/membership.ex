@@ -35,10 +35,15 @@ defmodule Anvil.Organisations.Membership do
 
   policies do
     policy action_type(:read) do
-      authorize_if expr(user_id == ^actor(:id))
+      # Allow reading memberships if you're a member of the organisation
+      authorize_if expr(exists(organisation.memberships, user_id == ^actor(:id)))
     end
 
-    policy action_type([:create, :update, :destroy]) do
+    policy action_type(:create) do
+      authorize_if Anvil.Organisations.Checks.UserCanManageOrganisation
+    end
+
+    policy action_type([:update, :destroy]) do
       authorize_if expr(
                      exists(organisation.memberships, user_id == ^actor(:id) and role == :owner)
                    )

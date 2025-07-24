@@ -30,6 +30,7 @@ defmodule AnvilWeb.LiveUserAuth do
     socket = AshAuthentication.Phoenix.LiveSession.assign_new_resources(socket, session)
 
     if socket.assigns[:current_user] do
+      ensure_personal_organisation(socket.assigns.current_user)
       socket = assign_current_organisation(socket, session)
       {:cont, socket}
     else
@@ -64,5 +65,48 @@ defmodule AnvilWeb.LiveUserAuth do
     |> assign(:organisations, organisations)
     |> assign(:current_organisation, current_organisation)
     |> assign(:user_memberships, user_with_orgs.memberships)
+  end
+
+  defp ensure_personal_organisation(user) do
+    # Load user's memberships to check for personal org
+    user_with_memberships = Ash.load!(user, [memberships: :organisation], authorize?: false)
+
+    has_personal_org =
+      user_with_memberships.memberships
+      |> Enum.any?(fn membership -> membership.organisation.personal? end)
+
+    unless has_personal_org do
+      # Create personal organisation for the user
+      username =
+        user.email
+        |> to_string()
+        |> String.split("@")
+        |> List.first()
+
+      case Anvil.Organisations.create_organisation(
+             %{
+               name: "#{username}'s Personal",
+               description: "Personal organisation for #{user.email}",
+               personal?: true
+             },
+             authorize?: false
+           ) do
+        {:ok, organisation} ->
+          # Create owner membership
+          Anvil.Organisations.create_membership(
+            %{
+              user_id: user.id,
+              organisation_id: organisation.id,
+              role: :owner
+            },
+            authorize?: false
+          )
+
+        {:error, _error} ->
+          # Log error but don't halt the login process
+          # The user can still use shared organisations
+          nil
+      end
+    end
   end
 end
