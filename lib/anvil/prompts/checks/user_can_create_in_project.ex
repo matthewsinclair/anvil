@@ -8,33 +8,38 @@ defmodule Anvil.Prompts.Checks.UserCanCreateInProject do
 
   @impl true
   def match?(actor, %{changeset: changeset}, _opts) do
-    case Ash.Changeset.get_attribute(changeset, :project_id) do
-      nil ->
-        false
+    # Return false if no actor provided
+    if is_nil(actor) do
+      false
+    else
+      case Ash.Changeset.get_attribute(changeset, :project_id) do
+        nil ->
+          false
 
-      project_id ->
-        # First get the project to find its organisation_id
-        case Anvil.Projects.by_id(project_id, actor: actor, authorize?: false) do
-          {:ok, project} ->
-            # Check if the user has the right role in this organisation
-            case Anvil.Organisations.list_memberships(
-                   query: [
-                     filter: [
-                       user_id: actor.id,
-                       organisation_id: project.organisation_id,
-                       role: {:in, [:owner, :admin, :member]}
-                     ]
-                   ],
-                   actor: actor,
-                   authorize?: false
-                 ) do
-              {:ok, [_ | _]} -> true
-              _ -> false
-            end
+        project_id ->
+          # First get the project to find its organisation_id
+          case Anvil.Projects.by_id(project_id, actor: actor, authorize?: false) do
+            {:ok, project} ->
+              # Check if the user has the right role in this organisation
+              case Anvil.Organisations.list_memberships(
+                     query: [
+                       filter: [
+                         user_id: actor.id,
+                         organisation_id: project.organisation_id,
+                         role: {:in, [:owner, :admin, :member]}
+                       ]
+                     ],
+                     actor: actor,
+                     authorize?: false
+                   ) do
+                {:ok, [_ | _]} -> true
+                _ -> false
+              end
 
-          _ ->
-            false
-        end
+            _ ->
+              false
+          end
+      end
     end
   end
 
