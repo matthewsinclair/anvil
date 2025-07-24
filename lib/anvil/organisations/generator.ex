@@ -28,14 +28,18 @@ defmodule Anvil.Organisations.Generator do
       iex> personal_org = generate(organisation(personal?: true))
   """
   def organisation(opts \\ []) do
-    seed_generator(
-      %Anvil.Organisations.Organisation{
-        name: sequence(:string, &"Organisation #{&1}"),
-        description: "Test organisation description",
-        personal?: false
-      },
-      overrides: opts
-    )
+    # Use unique number for organisation names  
+    org_num = System.unique_integer([:positive])
+    name = opts[:name] || "Organisation #{org_num}"
+
+    # Create through the action to trigger slug generation
+    Anvil.Organisations.Organisation
+    |> Ash.Changeset.for_create(:create, %{
+      name: name,
+      description: opts[:description] || "Test organisation description",
+      personal?: opts[:personal?] || false
+    })
+    |> Ash.create!(authorize?: false)
   end
 
   @doc """

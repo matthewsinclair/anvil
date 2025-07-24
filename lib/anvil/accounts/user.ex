@@ -305,6 +305,10 @@ defmodule Anvil.Accounts.User do
       authorize_if actor_present()
     end
 
+    policy action(:change_password) do
+      authorize_if expr(id == ^actor(:id))
+    end
+
     policy always() do
       forbid_if always()
     end

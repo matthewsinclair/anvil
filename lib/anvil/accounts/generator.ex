@@ -13,7 +13,7 @@ defmodule Anvil.Accounts.Generator do
 
   # Pre-hashed version of the default password using bcrypt
   # This speeds up tests by avoiding repeated hashing
-  @default_hashed_password "$2b$12$K8Y1TXNQ84E5VO.TkNsjbuar2oqOxy/kn3IvUiHhKTUTQAoJb6/bW"
+  @default_hashed_password "$2b$12$KfYLwjFATWirCky9Y2VCC.lJrfbUR72p1PPQ56mvCoviI/NI.S/h2"
   def default_hashed_password, do: @default_hashed_password
 
   @doc """
@@ -64,8 +64,19 @@ defmodule Anvil.Accounts.Generator do
       })
       |> Ash.create(authorize?: false)
 
-    # Apply any additional options (e.g., confirmed_at)
-    # Note: User doesn't have a role attribute in this system
+    # Confirm the user if requested (default true for testing)
+    user =
+      if Keyword.get(opts, :confirmed, true) do
+        # Use Ecto to directly update the user
+        {:ok, confirmed_user} =
+          user
+          |> Ecto.Changeset.change(confirmed_at: DateTime.utc_now())
+          |> Anvil.Repo.update()
+
+        confirmed_user
+      else
+        user
+      end
 
     # Get the personal organisation
     {:ok, orgs} = Anvil.Organisations.list_organisations(%{}, actor: user)
