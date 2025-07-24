@@ -27,7 +27,7 @@ defmodule Anvil.Projects.Project do
 
     update :update do
       accept [:name, :description]
-      change Anvil.Projects.Changes.GenerateSlug
+      # Don't regenerate slug on update - it should remain stable
     end
   end
 

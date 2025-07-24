@@ -10,4 +10,8 @@ defmodule Anvil.Accounts do
     resource Anvil.Accounts.User
     resource Anvil.Accounts.ApiKey
   end
+
+  authorization do
+    authorize :by_default
+  end
 end

@@ -54,47 +54,46 @@ defmodule AnvilWeb.OrganisationLive.Index do
     case Organisations.create_organisation(%{name: name, description: description},
            actor: socket.assigns.current_user
          ) do
-      {:ok, organisation} ->
-        # Create owner membership
-        case Organisations.create_membership(
-               %{
-                 user_id: socket.assigns.current_user.id,
-                 organisation_id: organisation.id,
-                 role: :owner
-               },
-               actor: socket.assigns.current_user
-             ) do
-          {:ok, _membership} ->
-            # Reload organisations
-            organisations = reload_organisations(socket.assigns.current_user)
+      {:ok, _organisation} ->
+        # Owner membership is now automatically created by the resource
+        # Reload organisations
+        organisations = reload_organisations(socket.assigns.current_user)
 
-            {:noreply,
-             socket
-             |> put_flash(:info, "Organisation created successfully")
-             |> assign(:organisations, organisations)
-             |> assign(:show_new_form, false)
-             |> assign(:form, build_form())
-             |> stream(:organisations, organisations, reset: true)}
-
-          {:error, _} ->
-            {:noreply, put_flash(socket, :error, "Failed to create organisation membership")}
-        end
+        {:noreply,
+         socket
+         |> put_flash(:info, "Organisation created successfully")
+         |> assign(:organisations, organisations)
+         |> assign(:show_new_form, false)
+         |> assign(:form, build_form())
+         |> stream(:organisations, organisations, reset: true)}
 
       {:error, %{errors: errors}} ->
         error_message =
           errors
           |> Enum.map(fn error ->
             case error do
-              %{field: :slug} -> "Organisation name already taken"
-              %{field: :name} -> "Organisation name is required"
-              _ -> "Failed to create organisation"
+              %{field: :slug} ->
+                "Organisation name already taken"
+
+              %{field: :name, message: message} ->
+                if String.contains?(message, "already been taken") do
+                  "Organisation name already taken"
+                else
+                  "Organisation name is required"
+                end
+
+              %{field: :name} ->
+                "Organisation name is required"
+
+              _ ->
+                "Failed to create organisation"
             end
           end)
           |> Enum.join(", ")
 
         {:noreply, put_flash(socket, :error, error_message)}
 
-      {:error, _} ->
+      {:error, _error} ->
         {:noreply, put_flash(socket, :error, "Failed to create organisation")}
     end
   end

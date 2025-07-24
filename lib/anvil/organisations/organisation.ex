@@ -17,13 +17,13 @@ defmodule Anvil.Organisations.Organisation do
       accept [:name, :description, :personal?]
 
       change Anvil.Organisations.Changes.GenerateSlug
+      change Anvil.Organisations.Changes.CreateOwnerMembership
     end
 
     update :update do
       primary? true
       accept [:name, :description]
-
-      change Anvil.Organisations.Changes.GenerateSlug
+      # Don't regenerate slug on update
     end
 
     destroy :destroy do
@@ -33,21 +33,22 @@ defmodule Anvil.Organisations.Organisation do
 
   policies do
     # Allow anyone to create an organisation
-    bypass action_type(:create) do
-      authorize_if always()
+    policy action_type(:create) do
+      authorize_if actor_present()
     end
 
-    bypass action_type(:read) do
+    policy action_type(:read) do
+      forbid_unless actor_present()
       authorize_if expr(exists(memberships, user_id == ^actor(:id)))
     end
 
     policy action(:update) do
-      authorize_if expr(exists(memberships, user_id == ^actor(:id) and role == :owner))
+      authorize_if expr(exists(memberships, user_id == ^actor(:id) and role in [:owner, :admin]))
     end
 
     policy action(:destroy) do
       forbid_if expr(personal? == true)
-      authorize_if expr(exists(memberships, user_id == ^actor(:id) and role == :owner))
+      authorize_if expr(exists(memberships, user_id == ^actor(:id) and role in [:owner, :admin]))
     end
   end
 

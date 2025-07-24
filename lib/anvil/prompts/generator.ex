@@ -214,4 +214,37 @@ defmodule Anvil.Prompts.Generator do
     Sent on {{ date | date: "%B %d, %Y" }}
     """
   end
+
+  @doc """
+  Generate a test version for a prompt set.
+
+  ## Options
+  - `:version` - Version string (default: "1.0.0")
+  - `:content` - Content snapshot
+  - `:changelog` - Changelog text
+  - `:metadata` - Additional metadata
+  - `:prompt_set_id` - The prompt set this version belongs to (required)
+
+  ## Examples
+
+      iex> version = generate(version(prompt_set_id: set.id))
+  """
+  def version(opts \\ []) do
+    prompt_set_id = Keyword.fetch!(opts, :prompt_set_id)
+
+    version_str = opts[:version] || "1.0.0"
+    content = opts[:content] || %{}
+    changelog = opts[:changelog] || ""
+    _metadata = opts[:metadata] || %{}
+
+    # Create version
+    Anvil.Prompts.Version
+    |> Ash.Changeset.for_create(:create, %{
+      version_number: version_str,
+      snapshot: content,
+      changelog: changelog,
+      prompt_set_id: prompt_set_id
+    })
+    |> Ash.create!(authorize?: false)
+  end
 end

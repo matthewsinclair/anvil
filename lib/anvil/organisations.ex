@@ -18,4 +18,8 @@ defmodule Anvil.Organisations do
       define :destroy_membership, action: :destroy
     end
   end
+
+  authorization do
+    authorize :by_default
+  end
 end

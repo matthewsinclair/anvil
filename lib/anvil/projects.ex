@@ -11,4 +11,8 @@ defmodule Anvil.Projects do
       define :destroy
     end
   end
+
+  authorization do
+    authorize :by_default
+  end
 end

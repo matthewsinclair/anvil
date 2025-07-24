@@ -29,15 +29,16 @@ defmodule Anvil.Organisations.Checks.UserCanManageOrganisation do
           # No memberships yet - this must be the first one, allow it
           true
         else
-          # There are existing memberships, check if user is an owner
-          owner_count =
+          # There are existing memberships, check if user is an owner or admin
+          admin_count =
             Anvil.Organisations.Membership
             |> filter(
-              organisation_id == ^organisation_id and user_id == ^actor.id and role == :owner
+              organisation_id == ^organisation_id and user_id == ^actor.id and
+                role in [:owner, :admin]
             )
             |> Ash.count!(actor: actor, authorize?: false)
 
-          owner_count > 0
+          admin_count > 0
         end
     end
   end
