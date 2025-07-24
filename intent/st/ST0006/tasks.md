@@ -3,6 +3,7 @@
 ## Phase 1: Testing Infrastructure Setup
 
 ### Dependencies and Configuration
+
 - [ ] Add test dependencies to mix.exs
   - [ ] {:phoenix_test, "~> 0.4.0", only: :test, runtime: false}
   - [ ] {:ex_machina, "~> 2.8", only: :test}
@@ -13,6 +14,7 @@
   - [ ] Set up test-specific Ash configuration
 
 ### Test Support Files
+
 - [ ] Enhance test/support/data_case.ex
   - [ ] Import Ecto.Query
   - [ ] Import Ash test helpers
@@ -30,6 +32,7 @@
   - [ ] Common test data setup functions
 
 ### Generator Setup
+
 - [ ] Create test/support/generators.ex
   - [ ] Configure Ash.Generator
   - [ ] Define resource generators
@@ -50,6 +53,7 @@
 ## Phase 2: Unit Tests - Ash Resources
 
 ### Accounts Domain Tests
+
 - [ ] Create test/anvil/accounts/user_test.exs
   - [ ] User creation with validations
   - [ ] Password authentication
@@ -61,6 +65,7 @@
   - [ ] Token expiration
 
 ### Organisations Domain Tests
+
 - [ ] Create test/anvil/organisations/organisation_test.exs
   - [ ] Organisation creation
   - [ ] Slug generation and uniqueness
@@ -71,12 +76,14 @@
   - [ ] Unique user/org constraint
 
 ### Projects Domain Tests
+
 - [ ] Create test/anvil/projects/project_test.exs
   - [ ] Project creation within org
   - [ ] Name/slug uniqueness within org
   - [ ] Organisation relationship
 
 ### Prompts Domain Tests
+
 - [ ] Create test/anvil/prompts/prompt_set_test.exs
   - [ ] PromptSet creation
   - [ ] Project relationship
@@ -92,6 +99,7 @@
   - [ ] Snapshot accuracy
 
 ### Policy Tests
+
 - [ ] Create test/anvil/policies/organisation_policy_test.exs
   - [ ] Member can read org
   - [ ] Only owner can update/delete
@@ -106,6 +114,7 @@
 ## Phase 3: Integration Tests - LiveView Flows
 
 ### Authentication Tests
+
 - [ ] Create test/anvil_web/integration/auth/sign_up_test.exs
   - [ ] Successful registration
   - [ ] Email validation
@@ -121,6 +130,7 @@
   - [ ] Expired link handling
 
 ### Dashboard Tests
+
 - [ ] Create test/anvil_web/integration/dashboard/dashboard_smoke_test.exs
   - [ ] Dashboard loads
   - [ ] Shows user's organisations
@@ -128,6 +138,7 @@
   - [ ] Navigation works
 
 ### Organisation Management Tests
+
 - [ ] Create test/anvil_web/integration/organisations/organisation_management_test.exs
   - [ ] Create new organisation
   - [ ] Switch between organisations
@@ -140,6 +151,7 @@
   - [ ] Role assignment
 
 ### Project Tests
+
 - [ ] Create test/anvil_web/integration/projects/project_crud_test.exs
   - [ ] Create project in current org
   - [ ] List projects
@@ -147,6 +159,7 @@
   - [ ] Delete project
 
 ### Prompt Management Tests
+
 - [ ] Create test/anvil_web/integration/prompts/prompt_smoke_test.exs
   - [ ] Navigate to prompts
   - [ ] List prompt sets
@@ -160,12 +173,14 @@
 ## Phase 4: API Tests
 
 ### Health Check
+
 - [ ] Create test/anvil_web/api/health_check_test.exs
   - [ ] Health endpoint returns 200
   - [ ] Database connectivity check
   - [ ] Response format
 
 ### Prompt API
+
 - [ ] Create test/anvil_web/api/prompt_api_test.exs
   - [ ] API key authentication
   - [ ] Get prompt by ID
@@ -177,12 +192,14 @@
 ## Phase 5: Test Utilities and CI/CD
 
 ### Test Utilities
+
 - [ ] Create mix test.unit alias for unit tests only
 - [ ] Create mix test.integration alias for integration tests
 - [ ] Add test coverage reporting with ExCoveralls
 - [ ] Configure test matrix for different Elixir/OTP versions
 
 ### CI/CD Integration
+
 - [ ] Create .github/workflows/test.yml
   - [ ] Set up Elixir/OTP
   - [ ] Set up PostgreSQL service
@@ -196,12 +213,14 @@
 ## Phase 6: Documentation and Examples
 
 ### Test Documentation
+
 - [ ] Update ST0006 impl.md with examples
 - [ ] Create testing guide in docs/
 - [ ] Document test data generation patterns
 - [ ] Document common test scenarios
 
 ### Developer Guide
+
 - [ ] How to run tests locally
 - [ ] How to debug failing tests
 - [ ] How to add new test cases
@@ -210,6 +229,7 @@
 ## Task Notes
 
 ### Priority Order
+
 1. Infrastructure setup (Phase 1) - Required for all other tests
 2. Unit tests (Phase 2) - Fast feedback, core functionality
 3. Integration tests (Phase 3) - User-facing features
@@ -218,6 +238,7 @@
 6. Documentation (Phase 6) - Knowledge sharing
 
 ### Key Considerations
+
 - Start with the most critical paths (auth, org isolation)
 - Ensure tests are independent and can run in any order
 - Keep tests fast - mock external services
@@ -227,16 +248,19 @@
 ## Dependencies
 
 ### Technical Dependencies
+
 - PhoenixTest requires Phoenix 1.7+
 - Ash.Generator requires Ash 3.0+
 - ExMachina works with Ecto 3.0+
 
 ### Knowledge Dependencies
+
 - Understanding of Ash policies and actions
 - Phoenix LiveView testing patterns
 - Ecto sandbox usage
 
 ### Completion Dependencies
+
 - Phase 1 must be complete before other phases
 - Unit tests can be written in parallel
 - Integration tests depend on test infrastructure
