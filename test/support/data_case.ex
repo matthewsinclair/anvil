@@ -24,11 +24,21 @@ defmodule Anvil.DataCase do
       import Ecto.Changeset
       import Ecto.Query
       import Anvil.DataCase
+
+      # Import Ash test helpers
+      import Ash.Test.Helpers
+
+      # Import domain generators when they exist
+      import Anvil.Accounts.Generator
+      import Anvil.Organisations.Generator
+      import Anvil.Projects.Generator
+      import Anvil.Prompts.Generator
     end
   end
 
   setup tags do
     Anvil.DataCase.setup_sandbox(tags)
+    Anvil.DataCase.setup_ets_tables(tags)
     :ok
   end
 

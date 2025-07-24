@@ -39,3 +39,7 @@ config :phoenix, :plug_init_mode, :runtime
 # Enable helpful, but potentially expensive runtime checks
 config :phoenix_live_view,
   enable_expensive_runtime_checks: true
+
+# PhoenixTest
+# See: https://hexdocs.pm/phoenix_test/PhoenixTest.html#module-configuration
+config :phoenix_test, :endpoint, AnvilWeb.Endpoint
