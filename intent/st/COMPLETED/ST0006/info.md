@@ -1,9 +1,9 @@
 ---
 verblock: "24 Jul 2025:v1.0: matts - Defined testing objectives, v2.0: Updated with completion status"
 stp_version: 2.0.0
-status: Ready for Sign-off
+status: Completed
 created: 20250724
-completed: 
+completed: 20250724
 ---
 # ST0006: Testing Core Functionality
 
@@ -49,4 +49,4 @@ ST0006 successfully delivered comprehensive testing infrastructure with the foll
 
 ### Current Status
 
-**Ready for Sign-off**: All primary objectives achieved with 192 tests, 0 failures. Phase 6 advanced options identified and deferred. ST0006 can be marked complete upon final review.
+**COMPLETED**: All primary objectives achieved with 192 tests, 0 failures. Phase 6 advanced options identified and deferred. ST0006 can be marked complete upon final review.

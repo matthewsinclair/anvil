@@ -3,7 +3,7 @@ verblock: "24 Jul 2025:v1.0: matts - Updated to reflect multi-file TPD"
 stp_version: 2.0.0
 status: Completed
 created: 20250724
-completed: 20250724
+completed:
 ---
 # ST0005: Documentation Update - Multi-File Technical Product Design
 
