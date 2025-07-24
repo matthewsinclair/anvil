@@ -1,0 +1,154 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="bg-base-100 border-2 border-primary p-6">
+    <div class="flex items-start justify-between">
+      <div class="flex-1">
+        <h1 class="text-3xl font-bold text-primary uppercase tracking-wider font-mono">
+          Version {@version.version_number}
+        </h1>
+        <p class="text-sm text-base-content/60 font-mono mt-1">
+          {@prompt_set.name} · Published {format_date(@version.published_at)}
+        </p>
+
+        <div :if={@version.changelog} class="mt-4">
+          <h3 class="text-sm font-bold uppercase tracking-wider font-mono text-primary mb-1">
+            Changelog
+          </h3>
+          <p class="text-base-content/80 font-mono">
+            {@version.changelog}
+          </p>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <.link
+          navigate={~p"/projects/#{@project}/prompt-sets/#{@prompt_set}"}
+          class="btn btn-outline btn-sm font-mono uppercase"
+        >
+          {retro_icon(:back)} Back
+        </.link>
+      </div>
+    </div>
+  </div>
+  
+<!-- Version Info -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="bg-base-100 border-2 border-base-300 p-4 text-center">
+      <div class="text-2xl font-bold text-primary font-mono">
+        {length(@version.snapshot["prompts"] || [])}
+      </div>
+      <div class="text-xs text-base-content/60 uppercase font-mono mt-1">
+        Prompts
+      </div>
+    </div>
+
+    <div class="bg-base-100 border-2 border-base-300 p-4 text-center">
+      <div class="text-2xl font-bold text-secondary font-mono">
+        {@version.version_number}
+      </div>
+      <div class="text-xs text-base-content/60 uppercase font-mono mt-1">
+        Version
+      </div>
+    </div>
+
+    <div class="bg-base-100 border-2 border-base-300 p-4 text-center">
+      <div class="text-sm font-bold text-accent font-mono">
+        {format_datetime(@version.published_at)}
+      </div>
+      <div class="text-xs text-base-content/60 uppercase font-mono mt-1">
+        Published
+      </div>
+    </div>
+  </div>
+  
+<!-- Prompts Accordion -->
+  <div class="bg-base-100 border-2 border-base-300">
+    <div class="p-4 border-b-2 border-base-300">
+      <h2 class="text-lg font-bold uppercase tracking-wider font-mono text-primary">
+        {retro_icon(:prompt)} Prompts in this Version
+      </h2>
+    </div>
+
+    <div class="divide-y-2 divide-base-300">
+      <div
+        :for={{prompt, index} <- Enum.with_index(@version.snapshot["prompts"] || [])}
+        class="border-b-2 border-base-300 last:border-0"
+      >
+        <button
+          phx-click="toggle_prompt"
+          phx-value-index={index}
+          class="w-full p-4 text-left hover:bg-base-200 transition-colors flex items-center justify-between"
+        >
+          <div class="flex-1">
+            <h3 class="font-mono font-bold text-primary">
+              {prompt["name"]}
+            </h3>
+            <p class="text-xs text-base-content/60 font-mono mt-1">
+              {length(prompt["parameters"] || [])} parameters
+            </p>
+          </div>
+          <div class="text-primary">
+            <span :if={MapSet.member?(@expanded_prompts, index)}>
+              ▼
+            </span>
+            <span :if={!MapSet.member?(@expanded_prompts, index)}>
+              ▶
+            </span>
+          </div>
+        </button>
+
+        <div :if={MapSet.member?(@expanded_prompts, index)} class="bg-base-200 p-4 space-y-4">
+          <!-- Template -->
+          <div>
+            <h4 class="text-sm font-bold uppercase tracking-wider font-mono text-primary mb-2">
+              Template
+            </h4>
+            <pre class="bg-base-100 border border-base-300 p-3 rounded overflow-x-auto text-sm font-mono whitespace-pre-wrap">{prompt["template"]}</pre>
+          </div>
+          
+<!-- Parameters -->
+          <div :if={length(prompt["parameters"] || []) > 0}>
+            <h4 class="text-sm font-bold uppercase tracking-wider font-mono text-primary mb-2">
+              Parameters
+            </h4>
+            <div class="space-y-2">
+              <div
+                :for={param <- prompt["parameters"] || []}
+                class="bg-base-100 border border-base-300 p-3 rounded"
+              >
+                <div class="flex items-center gap-2">
+                  <span class="font-mono font-bold text-primary">
+                    {param["name"]}
+                  </span>
+                  <span class="badge badge-ghost badge-sm font-mono">
+                    {param["type"]}
+                  </span>
+                  <span :if={param["required"]} class="badge badge-primary badge-sm font-mono">
+                    Required
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div :if={Enum.empty?(@version.snapshot["prompts"] || [])} class="p-8 text-center">
+        <p class="text-base-content/60 font-mono">
+          No prompts in this version
+        </p>
+      </div>
+    </div>
+  </div>
+  
+<!-- Metadata -->
+  <div
+    :if={@version.snapshot["metadata"] && map_size(@version.snapshot["metadata"]) > 0}
+    class="bg-base-100 border-2 border-base-300 p-4"
+  >
+    <h3 class="text-sm font-bold uppercase tracking-wider font-mono text-primary mb-2">
+      Prompt Set Metadata
+    </h3>
+    <pre class="text-xs font-mono text-base-content/80 overflow-x-auto">{Jason.encode!(@version.snapshot["metadata"], pretty: true)}</pre>
+  </div>
+</div>

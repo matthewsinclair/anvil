@@ -14,10 +14,10 @@ defmodule Anvil.Prompts.Version do
   end
 
   actions do
-    defaults [:read]
+    defaults [:read, :destroy]
 
     create :create do
-      accept [:version_number, :changelog, :snapshot, :prompt_set_id]
+      accept [:version_number, :changelog, :snapshot, :prompt_set_id, :published_by_id]
 
       change set_attribute(:published_at, &DateTime.utc_now/0)
     end
@@ -45,7 +45,7 @@ defmodule Anvil.Prompts.Version do
     end
 
     belongs_to :published_by, Anvil.Accounts.User do
-      define_attribute? false
+      attribute_writable? true
     end
   end
 

@@ -81,6 +81,11 @@ defmodule AnvilWeb.Router do
       live "/projects/:project_id/prompt-sets/:prompt_set_id/prompts/:id/edit",
            PromptLive.Edit,
            :edit
+
+      # Version routes
+      live "/projects/:project_id/prompt-sets/:prompt_set_id/versions/:id",
+           VersionLive.Show,
+           :show
     end
   end
 
