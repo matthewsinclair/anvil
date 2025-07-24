@@ -13,6 +13,13 @@ defmodule AnvilWeb.DashboardLive do
   end
 
   @impl true
+  def handle_info({:switch_organisation, _org_id}, socket) do
+    # For now, just redirect to refresh the page with the new organisation
+    # In a production app, you'd update the session here
+    {:noreply, push_navigate(socket, to: ~p"/app")}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <div class="space-y-6">

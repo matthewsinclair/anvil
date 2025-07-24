@@ -3,7 +3,7 @@ defmodule Anvil.Projects do
 
   resources do
     resource Anvil.Projects.Project do
-      define :create, args: [:name, :repository]
+      define :create, args: [:name]
       define :read_all, action: :read
       define :by_id, get_by: [:id], action: :read
       define :get_by_id, get_by: [:id], action: :read

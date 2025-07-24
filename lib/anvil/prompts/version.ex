@@ -24,8 +24,23 @@ defmodule Anvil.Prompts.Version do
   end
 
   policies do
-    policy always() do
-      authorize_if always()
+    policy action_type(:read) do
+      authorize_if expr(
+                     exists(prompt_set.project.organisation.memberships, user_id == ^actor(:id))
+                   )
+    end
+
+    policy action_type(:create) do
+      authorize_if Anvil.Prompts.Checks.UserCanCreateVersion
+    end
+
+    policy action_type(:destroy) do
+      authorize_if expr(
+                     exists(
+                       prompt_set.project.organisation.memberships,
+                       user_id == ^actor(:id) and role in [:owner, :admin]
+                     )
+                   )
     end
   end
 

@@ -10,7 +10,7 @@ defmodule AnvilWeb.PromptSetLive.Index do
   @impl true
   def mount(%{"project_id" => project_id}, _session, socket) do
     project =
-      Projects.get_by_id!(project_id,
+      Projects.by_id!(project_id,
         actor: socket.assigns.current_user,
         load: [prompt_sets: [:prompts, :versions]]
       )
@@ -44,7 +44,7 @@ defmodule AnvilWeb.PromptSetLive.Index do
       :ok ->
         # Reload project to get updated prompt sets
         project =
-          Projects.get_by_id!(socket.assigns.project.id,
+          Projects.by_id!(socket.assigns.project.id,
             actor: socket.assigns.current_user,
             load: [prompt_sets: [:prompts, :versions]]
           )

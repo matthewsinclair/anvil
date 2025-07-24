@@ -11,7 +11,7 @@ defmodule AnvilWeb.PromptSetLive.Show do
   @impl true
   def mount(%{"project_id" => project_id}, _session, socket) do
     project =
-      Projects.get_by_id!(project_id,
+      Projects.by_id!(project_id,
         actor: socket.assigns.current_user
       )
 

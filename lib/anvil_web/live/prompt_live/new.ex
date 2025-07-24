@@ -9,7 +9,7 @@ defmodule AnvilWeb.PromptLive.New do
 
   @impl true
   def mount(%{"project_id" => project_id, "prompt_set_id" => prompt_set_id}, _session, socket) do
-    project = Projects.get_by_id!(project_id, actor: socket.assigns.current_user)
+    project = Projects.by_id!(project_id, actor: socket.assigns.current_user)
     prompt_set = Prompts.get_prompt_set_by_id!(prompt_set_id, actor: socket.assigns.current_user)
 
     # Verify the prompt set belongs to the project

@@ -11,7 +11,7 @@
       ▪ Edit Project
     </h1>
     <p class="text-base-content/60 font-mono mt-2">
-      Update project information for @{@project.repository}
+      Update project information
     </p>
   </div>
   
@@ -33,17 +33,17 @@
           />
         </div>
         
-<!-- Repository (Read-only) -->
+<!-- Slug (Read-only) -->
         <div>
           <label class="label">
-            <span class="label-text font-mono uppercase text-primary">Repository</span>
+            <span class="label-text font-mono uppercase text-primary">Slug</span>
           </label>
           <div class="input input-bordered input-primary w-full font-mono bg-base-200 cursor-not-allowed">
-            {@project.repository}
+            {@project.slug}
           </div>
           <label class="label">
             <span class="label-text-alt text-base-content/60 font-mono">
-              Repository identifier cannot be changed after creation
+              Project slug cannot be changed after creation
             </span>
           </label>
         </div>

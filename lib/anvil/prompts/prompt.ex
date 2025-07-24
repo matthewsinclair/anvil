@@ -28,8 +28,23 @@ defmodule Anvil.Prompts.Prompt do
   end
 
   policies do
-    policy always() do
-      authorize_if always()
+    policy action_type(:read) do
+      authorize_if expr(
+                     exists(prompt_set.project.organisation.memberships, user_id == ^actor(:id))
+                   )
+    end
+
+    policy action_type(:create) do
+      authorize_if Anvil.Prompts.Checks.UserCanCreatePrompt
+    end
+
+    policy action_type([:update, :destroy]) do
+      authorize_if expr(
+                     exists(
+                       prompt_set.project.organisation.memberships,
+                       user_id == ^actor(:id) and role in [:owner, :admin, :member]
+                     )
+                   )
     end
   end
 

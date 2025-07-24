@@ -2,6 +2,7 @@ defmodule AnvilWeb.Components.Common.DashboardHeaderComponent do
   use AnvilWeb, :html
 
   alias AnvilWeb.Components.Common.UserMenuComponent
+  alias AnvilWeb.Components.Common.OrganisationSwitcherComponent
 
   @moduledoc """
   Dashboard header component with 8-bit retro theme.
@@ -15,6 +16,8 @@ defmodule AnvilWeb.Components.Common.DashboardHeaderComponent do
       <.dashboard_header current_user={@current_user} />
   """
   attr :current_user, :any, default: nil
+  attr :current_organisation, :any, default: nil
+  attr :organisations, :list, default: []
   attr :is_live_view, :boolean, default: false
 
   def dashboard_header(assigns) do
@@ -37,8 +40,17 @@ defmodule AnvilWeb.Components.Common.DashboardHeaderComponent do
         <!-- Empty spacer for layout balance -->
       </div>
       
-    <!-- Right side - User Menu -->
+    <!-- Right side - Organisation Switcher and User Menu -->
       <div class="navbar-end">
+        <%= if @current_organisation && @organisations != [] do %>
+          <.live_component
+            module={OrganisationSwitcherComponent}
+            id="organisation-switcher"
+            current_organisation={@current_organisation}
+            organisations={@organisations}
+          />
+          <div class="divider divider-horizontal mx-2"></div>
+        <% end %>
         <UserMenuComponent.user_menu current_user={@current_user} />
       </div>
     </header>

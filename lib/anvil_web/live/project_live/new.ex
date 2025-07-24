@@ -1,6 +1,7 @@
 defmodule AnvilWeb.ProjectLive.New do
   use AnvilWeb, :live_view
   use AnvilWeb.Live.CommandPaletteHandler
+  use AnvilWeb.Live.OrganisationAware
 
   alias Anvil.Projects
 
@@ -8,17 +9,24 @@ defmodule AnvilWeb.ProjectLive.New do
 
   @impl true
   def mount(_params, _session, socket) do
-    form = build_form(socket.assigns.current_user)
+    if socket.assigns[:current_organisation] do
+      form = build_form(socket.assigns.current_user, socket.assigns.current_organisation.id)
 
-    {:ok,
-     socket
-     |> assign(:page_title, "New Project")
-     |> assign(:current_path, "/projects/new")
-     |> assign(:form, form)
-     |> assign(:breadcrumb_items, [
-       %{label: "Projects", href: ~p"/projects"},
-       %{label: "New", current: true}
-     ]), layout: {AnvilWeb.Layouts, :dashboard}}
+      {:ok,
+       socket
+       |> assign(:page_title, "New Project")
+       |> assign(:current_path, "/projects/new")
+       |> assign(:form, form)
+       |> assign(:breadcrumb_items, [
+         %{label: "Projects", href: ~p"/projects"},
+         %{label: "New", current: true}
+       ]), layout: {AnvilWeb.Layouts, :dashboard}}
+    else
+      {:ok,
+       socket
+       |> put_flash(:error, "No organisation selected")
+       |> push_navigate(to: ~p"/projects")}
+    end
   end
 
   @impl true
@@ -49,10 +57,11 @@ defmodule AnvilWeb.ProjectLive.New do
     super(event, params, socket)
   end
 
-  defp build_form(actor) do
+  defp build_form(actor, organisation_id) do
     AshPhoenix.Form.for_create(Projects.Project, :create,
       as: "form",
-      actor: actor
+      actor: actor,
+      params: %{organisation_id: organisation_id}
     )
     |> to_form()
   end

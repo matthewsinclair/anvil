@@ -180,6 +180,9 @@ defmodule Anvil.Accounts.User do
       # validates that the password matches the confirmation
       validate AshAuthentication.Strategy.Password.PasswordConfirmationValidation
 
+      # Creates a personal organisation for the new user
+      change Anvil.Accounts.Changes.CreatePersonalOrganisation
+
       metadata :token, :string do
         description "A JWT that can be used to authenticate the user."
         allow_nil? false
@@ -302,6 +305,16 @@ defmodule Anvil.Accounts.User do
   relationships do
     has_many :valid_api_keys, Anvil.Accounts.ApiKey do
       filter expr(valid)
+    end
+
+    has_many :memberships, Anvil.Organisations.Membership do
+      destination_attribute :user_id
+    end
+
+    many_to_many :organisations, Anvil.Organisations.Organisation do
+      through Anvil.Organisations.Membership
+      source_attribute_on_join_resource :user_id
+      destination_attribute_on_join_resource :organisation_id
     end
   end
 

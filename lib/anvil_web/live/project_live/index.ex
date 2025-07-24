@@ -1,6 +1,7 @@
 defmodule AnvilWeb.ProjectLive.Index do
   use AnvilWeb, :live_view
   use AnvilWeb.Live.CommandPaletteHandler
+  use AnvilWeb.Live.OrganisationAware
 
   alias Anvil.Projects
 
@@ -25,7 +26,7 @@ defmodule AnvilWeb.ProjectLive.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    project = Projects.get_by_id!(id, actor: socket.assigns.current_user)
+    project = Projects.by_id!(id, actor: socket.assigns.current_user)
 
     case Projects.destroy(project, actor: socket.assigns.current_user) do
       :ok ->
@@ -69,6 +70,14 @@ defmodule AnvilWeb.ProjectLive.Index do
   end
 
   defp list_projects(socket) do
-    Projects.read_all!(actor: socket.assigns.current_user, load: [:prompt_sets])
+    if socket.assigns[:current_organisation] do
+      Projects.read_all!(
+        actor: socket.assigns.current_user,
+        query: [filter: [organisation_id: socket.assigns.current_organisation.id]],
+        load: [:prompt_sets]
+      )
+    else
+      []
+    end
   end
 end

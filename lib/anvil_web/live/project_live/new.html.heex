@@ -18,6 +18,11 @@
 <!-- Form Card -->
   <div class="bg-base-100 border-2 border-primary p-8">
     <.form for={@form} id="project-form" phx-change="validate" phx-submit="save">
+      <input
+        type="hidden"
+        name={@form[:organisation_id].name}
+        value={@form[:organisation_id].value}
+      />
       <div class="space-y-6">
         <!-- Project Name -->
         <div>
@@ -31,25 +36,6 @@
             class="input input-bordered input-primary w-full font-mono"
             phx-debounce="blur"
           />
-        </div>
-        
-<!-- Repository -->
-        <div>
-          <label class="label">
-            <span class="label-text font-mono uppercase text-primary">Repository</span>
-          </label>
-          <.input
-            field={@form[:repository]}
-            type="text"
-            placeholder="mycompany"
-            class="input input-bordered input-primary w-full font-mono"
-            phx-debounce="blur"
-          />
-          <label class="label">
-            <span class="label-text-alt text-base-content/60 font-mono">
-              Unique identifier for this project's prompts (e.g., @mycompany/prompts@1.0.0/welcome)
-            </span>
-          </label>
         </div>
         
 <!-- Description -->

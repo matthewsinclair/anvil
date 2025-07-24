@@ -7,11 +7,6 @@ completed:
 ---
 # ST0003: Organisations own projects
 
-- **Status**: In Progress
-- **Created**: 2025-07-24
-- **Completed**: 2025-07-24
-- **Author**: matts
-
 ## Objective
 
 [Clear statement of what this steel thread aims to accomplish]

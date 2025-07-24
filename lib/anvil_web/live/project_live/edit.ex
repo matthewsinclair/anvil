@@ -16,7 +16,7 @@ defmodule AnvilWeb.ProjectLive.Edit do
   @impl true
   def handle_params(%{"id" => id}, _, socket) do
     project =
-      Projects.get_by_id!(id,
+      Projects.by_id!(id,
         actor: socket.assigns.current_user
       )
 

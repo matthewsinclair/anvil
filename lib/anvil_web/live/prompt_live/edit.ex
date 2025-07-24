@@ -21,7 +21,7 @@ defmodule AnvilWeb.PromptLive.Edit do
         _url,
         socket
       ) do
-    project = Projects.get_by_id!(project_id, actor: socket.assigns.current_user)
+    project = Projects.by_id!(project_id, actor: socket.assigns.current_user)
     prompt_set = Prompts.get_prompt_set_by_id!(prompt_set_id, actor: socket.assigns.current_user)
     prompt = Prompts.get_prompt_by_id!(id, actor: socket.assigns.current_user)
 
