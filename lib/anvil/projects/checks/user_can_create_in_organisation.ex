@@ -7,6 +7,8 @@ defmodule Anvil.Projects.Checks.UserCanCreateInOrganisation do
   end
 
   @impl true
+  def match?(nil, _context, _opts), do: false
+
   def match?(actor, %{changeset: changeset}, _opts) do
     case Ash.Changeset.get_argument(changeset, :organisation_id) do
       nil ->
